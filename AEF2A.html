@@ -1,0 +1,2636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AEF 2A — Units 1 · 2 · 3</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700&display=swap');
+
+:root{
+  --a:#eab308;
+  --b:#10b981;
+  --c:#8b5cf6;
+  --r:#0ea5e9;
+  --dark:#263238;
+  --soft:#f7f8fa;
+  --line:#e5e7eb;
+  --g-blue:#4285F4;
+  --g-red:#EA4335;
+  --g-yellow:#FBBC05;
+  --g-green:#34A853;
+}
+
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;font-family:'DM Sans','Vazirmatn',sans-serif;color:var(--dark);background:transparent}
+
+/* ========== BACKGROUND (profile photo) ========== */
+#bgLayer{position:fixed;inset:0;z-index:-3;background-size:cover;background-position:center;background-attachment:fixed;transition:.3s}
+#bgOverlay{position:fixed;inset:0;z-index:-2;background:#fff;transition:.3s}
+
+/* ========== PROFILE ========== */
+.profile-fab{
+  position:fixed;top:14px;right:14px;z-index:1500;
+  width:52px;height:52px;border-radius:50%;
+  background:#fff;border:1px solid #e2e8f0;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;font-size:22px;
+  box-shadow:0 4px 14px rgba(0,0,0,.1);overflow:hidden;transition:.15s;
+}
+.profile-fab:hover{transform:translateY(-2px)}
+.profile-fab img{width:100%;height:100%;object-fit:cover;display:none}
+
+.profile-overlay{position:fixed;inset:0;background:rgba(15,23,42,.55);display:none;align-items:center;justify-content:center;z-index:3000;padding:16px}
+.profile-overlay.show{display:flex}
+.profile-card{background:#fff;border-radius:22px;padding:26px;width:min(360px,94vw);text-align:center;box-shadow:0 20px 50px rgba(0,0,0,.25)}
+.profile-card h3{margin:0 0 4px;font-size:19px}
+.profile-card p.sub{color:#64748b;font-size:13px;margin:0 0 14px}
+.profile-preview-wrap{width:150px;height:150px;border-radius:50%;margin:8px auto 16px;overflow:hidden;background:#f1f5f9;border:2px dashed #cbd5e1;display:flex;align-items:center;justify-content:center;font-size:34px;color:#cbd5e1;transition:border-radius .2s}
+.profile-preview-wrap.bg-mode{border-radius:16px}
+.profile-preview-wrap img{width:100%;height:100%;object-fit:cover;display:none}
+.profile-actions{display:flex;flex-direction:column;gap:8px;margin-top:6px}
+.profile-btn{border:0;border-radius:12px;padding:11px;font-family:inherit;font-weight:700;font-size:14px;cursor:pointer}
+.profile-btn.upload{background:#eef2ff;color:#4338ca}
+.profile-btn.save{background:#10b981;color:#fff}
+.profile-btn.remove{background:#fee2e2;color:#991b1b}
+.profile-btn.close{background:#f1f5f9;color:#334155}
+.profile-btn.pickagain{background:transparent;color:#4338ca;text-decoration:underline;padding:4px;font-weight:600;font-size:12.5px}
+.profile-status{margin-top:10px;font-size:12.5px;color:#64748b;min-height:16px;line-height:1.5}
+.profile-status.ok{color:#059669;font-weight:700}
+.profile-status.err{color:#b91c1c;font-weight:600}
+.storage-warning{display:none;background:#fef2f2;color:#991b1b;border:1px solid #fecaca;border-radius:10px;padding:9px 11px;font-size:12px;line-height:1.5;margin-bottom:12px;text-align:left}
+.storage-warning.show{display:block}
+.profile-mode-tabs{display:flex;gap:8px;margin-bottom:14px}
+.mode-tab{flex:1;border:1px solid #e2e8f0;background:#f8fafc;border-radius:11px;padding:9px 6px;font-family:inherit;font-weight:700;font-size:12.5px;cursor:pointer;color:#64748b;transition:.15s}
+.mode-tab.active{background:#334155;color:#fff;border-color:#334155}
+.crop-stage{
+  width:220px;height:220px;border-radius:50%;overflow:hidden;
+  margin:10px auto 6px;position:relative;background:#0f172a;
+  border:2px solid #cbd5e1;cursor:grab;touch-action:none;
+  transition:border-radius .2s;
+}
+.crop-stage.bg-mode{border-radius:16px}
+.crop-stage:active{cursor:grabbing}
+.crop-stage img{position:absolute;top:0;left:0;user-select:none;-webkit-user-drag:none;transform-origin:0 0;max-width:none}
+.crop-hint{font-size:11.5px;color:#94a3b8;margin:0 0 6px}
+#zoomRange{width:220px;display:block;margin:0 auto 10px}
+input[type=file]{display:none}
+
+/* ========== HOME (Google-style) ========== */
+#homeView{
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  padding:40px 16px 60px;
+}
+.logo-wrap{margin-top:48px;margin-bottom:28px;text-align:center;user-select:none}
+.logo{
+  font-size:72px;
+  font-weight:700;
+  letter-spacing:-2px;
+  line-height:1;
+}
+.logo .c1{color:var(--g-blue)}
+.logo .c2{color:var(--g-red)}
+.logo .c3{color:var(--g-yellow)}
+.logo .c4{color:var(--g-blue)}
+.logo .c5{color:var(--g-green)}
+.logo .c6{color:var(--g-red)}
+.logo-sub{font-size:15px;color:#5f6368;margin-top:6px;font-weight:500}
+
+.search-box{
+  width:min(580px,92vw);
+  display:flex;
+  align-items:center;
+  background:#fff;
+  border:1px solid #dfe1e5;
+  border-radius:28px;
+  padding:12px 18px;
+  box-shadow:0 1px 6px rgba(32,33,36,.08);
+  transition:.2s;
+  margin-bottom:8px;
+}
+.search-box:hover,.search-box:focus-within{
+  box-shadow:0 2px 12px rgba(32,33,36,.16);
+  border-color:#dfe1e5;
+}
+.search-box input{
+  flex:1;
+  border:0;
+  outline:none;
+  font-size:16px;
+  font-family:inherit;
+  background:transparent;
+  color:#202124;
+}
+.search-box input::placeholder{color:#9aa0a6}
+.search-icons{display:flex;gap:12px;color:#5f6368;font-size:20px}
+
+.unit-icons{
+  display:flex;
+  justify-content:center;
+  gap:28px;
+  flex-wrap:wrap;
+  margin-top:42px;
+  max-width:520px;
+}
+.unit-icon{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:10px;
+  cursor:pointer;
+  text-decoration:none;
+  color:#202124;
+  width:90px;
+  transition:.15s;
+}
+.unit-icon:hover{transform:translateY(-3px)}
+.unit-icon .circle{
+  width:58px;
+  height:58px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:22px;
+  font-weight:700;
+  color:#fff;
+  box-shadow:0 3px 10px rgba(0,0,0,.12);
+}
+.unit-icon.u1 .circle{background:linear-gradient(135deg,#eab308,#f59e0b)}
+.unit-icon.u2 .circle{background:linear-gradient(135deg,#10b981,#059669)}
+.unit-icon.u3 .circle{background:linear-gradient(135deg,#8b5cf6,#7c3aed)}
+.unit-icon span{font-size:13px;font-weight:600;text-align:center;color:#5f6368}
+
+/* Search results */
+#searchResults{
+  width:min(580px,92vw);
+  margin-top:16px;
+  display:none;
+}
+#searchResults.show{display:block}
+.result-item{
+  background:#fff;
+  border:1px solid #e8eaed;
+  border-radius:12px;
+  padding:14px 16px;
+  margin-bottom:8px;
+  cursor:pointer;
+  transition:.15s;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+}
+.result-item:hover{background:#f1f3f4;border-color:#dadce0}
+.result-word{font-weight:700;font-size:17px}
+.result-meta{font-size:12px;color:#5f6368;margin-top:3px}
+.result-badge{
+  font-size:11px;
+  font-weight:700;
+  padding:4px 10px;
+  border-radius:20px;
+  white-space:nowrap;
+}
+.badge-u1{background:#fef3c7;color:#92400e}
+.badge-u2{background:#d1fae5;color:#065f46}
+.badge-u3{background:#ede9fe;color:#5b21b6}
+
+.no-results{text-align:center;color:#9aa0a6;padding:24px;font-size:15px}
+
+/* ========== UNIT VIEW ========== */
+#unitView{display:none;min-height:100vh}
+#unitView.active{display:block}
+
+.home-btn{
+  position:fixed;
+  top:14px;
+  left:14px;
+  z-index:1000;
+  background:#fff;
+  border:1px solid #e2e8f0;
+  border-radius:12px;
+  padding:9px 16px;
+  font-family:inherit;
+  font-weight:700;
+  font-size:14px;
+  cursor:pointer;
+  box-shadow:0 4px 14px rgba(0,0,0,.08);
+  color:#334155;
+  display:flex;
+  align-items:center;
+  gap:6px;
+  transition:.15s;
+}
+.home-btn:hover{background:#f8fafc;transform:translateY(-1px)}
+
+header{
+  position:relative;
+  text-align:center;
+  padding:28px 15px 24px;
+  overflow:hidden;
+  isolation:isolate;
+  min-height:100px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+}
+.watermark{position:relative;font-size:26px;font-weight:700;letter-spacing:1px;color:#475569;text-shadow:0 1px 2px rgba(255,255,255,.9)}
+.teacher{position:relative;margin-top:4px;font-size:14px;color:#64748b;font-weight:500}
+
+.main-tabs{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;padding:12px 15px;max-width:900px;margin:auto}
+.main-tab{
+  border:1px solid #e2e8f0;background:#fff;border-radius:14px;
+  padding:10px 18px;min-width:100px;cursor:pointer;font-weight:700;
+  transition:.2s;box-shadow:0 4px 14px rgba(0,0,0,.04);font-family:inherit;font-size:14px;
+}
+.main-tab.a.active{background:var(--a);color:#fff;border-color:var(--a)}
+.main-tab.b.active{background:var(--b);color:#fff;border-color:var(--b)}
+.main-tab.c.active{background:var(--c);color:#fff;border-color:var(--c)}
+.main-tab.r.active{background:var(--r);color:#fff;border-color:var(--r)}
+.main-tab.m.active{background:#334155;color:#fff;border-color:#334155}
+.main-tab.rep.active{background:#dc2626;color:#fff;border-color:#dc2626}
+
+.section{display:none;max-width:1050px;margin:8px auto 50px;padding:0 16px}
+.section.active{display:block}
+.section-title{text-align:center;padding:14px;border-radius:16px;margin-bottom:12px;font-size:20px;font-weight:700}
+.section-a .section-title{background:#fef9c3;color:#a16207}
+.section-b .section-title{background:#d1fae5;color:#047857}
+.section-c .section-title{background:#ede9fe;color:#6d28d9}
+.section-r .section-title{background:#e0f2fe;color:#0369a1}
+.section-m .section-title{background:#e2e8f0;color:#334155}
+.section-rep .section-title{background:#fee2e2;color:#991b1b}
+.repeat-hint{text-align:center;color:#64748b;font-size:12.5px;line-height:1.6;margin:-6px auto 16px;max-width:520px}
+
+.subtabs{display:flex;justify-content:center;gap:8px;margin:12px auto 18px;flex-wrap:wrap}
+.subtab{border:0;border-radius:12px;padding:9px 15px;background:#f1f5f9;cursor:pointer;font-family:inherit;font-weight:600;font-size:13px}
+.section-a .subtab.active{background:var(--a);color:#fff}
+.section-b .subtab.active{background:var(--b);color:#fff}
+.section-c .subtab.active{background:var(--c);color:#fff}
+.section-r .subtab.active{background:var(--r);color:#fff}
+.section-m .subtab.active{background:#334155;color:#fff}
+.subcontent{display:none}.subcontent.active{display:block}
+
+.counter{text-align:right;color:#64748b;font-size:13px;margin-bottom:8px;font-weight:600}
+
+.card-area{display:flex;justify-content:center;perspective:1000px;margin:8px auto 16px}
+.flashcard{width:min(650px,100%);min-height:360px;cursor:pointer;position:relative}
+.card-inner{position:relative;width:100%;min-height:360px;transition:transform .55s;transform-style:preserve-3d}
+.flashcard.flipped .card-inner{transform:rotateY(180deg)}
+.card-face{
+  position:absolute;inset:0;backface-visibility:hidden;
+  border:1px solid var(--line);border-radius:22px;background:#fff;
+  box-shadow:0 10px 30px rgba(15,23,42,.07);padding:26px;
+}
+.front{display:flex;align-items:center;justify-content:center;flex-direction:column}
+.front h2{font-size:38px;margin:0;font-weight:700;text-align:center}
+.front .phonetic{color:#94a3b8;margin-top:8px;font-size:16px}
+.front p{color:#94a3b8;margin-top:10px;font-size:13px}
+.front-speak{
+  width:46px;height:46px;margin-top:16px;border-radius:50%;border:0;
+  background:#f8fafc;color:#475569;cursor:pointer;font-size:20px;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 3px 10px rgba(15,23,42,.1);transition:.2s;
+}
+.front-speak:hover{transform:scale(1.08);background:#f1f5f9}
+.back{transform:rotateY(180deg);overflow:auto}
+.info-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}
+.info-box{
+  border:1px solid #e2e8f0;border-radius:11px;padding:11px 13px;min-height:52px;
+  display:flex;align-items:center;justify-content:space-between;gap:10px;text-align:left;
+}
+.info-text{flex:1;line-height:1.45}
+.info-label{display:block;font-size:10px;color:#94a3b8;text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px}
+.persian{direction:rtl;text-align:right;font-family:'Vazirmatn',sans-serif;font-size:14px;white-space:normal;width:100%}
+.speak{
+  width:32px;height:32px;min-width:32px;border-radius:50%;border:0;
+  background:#fff;color:#64748b;cursor:pointer;font-size:15px;
+  box-shadow:0 2px 6px rgba(0,0,0,.1);
+}
+.speak:hover{transform:scale(1.05)}
+
+.controls{display:flex;justify-content:center;align-items:center;gap:9px;margin:12px 0;flex-wrap:wrap}
+.btn{border:0;border-radius:11px;padding:9px 16px;color:#fff;cursor:pointer;font-family:inherit;font-weight:600;font-size:14px}
+.a-btn{background:var(--a)}.b-btn{background:var(--b)}.c-btn{background:var(--c)}.r-btn{background:var(--r)}.m-btn{background:#334155}
+
+.question-box{
+  background:#fff;border:1px solid var(--line);border-radius:18px;padding:22px;
+  box-shadow:0 6px 20px rgba(15,23,42,.05);
+}
+.question-number{color:#94a3b8;font-size:12px;margin-bottom:8px}
+.question-text{font-size:18px;line-height:1.65;margin-bottom:16px}
+.options{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}
+.option{
+  border:1px solid #e2e8f0;background:#fff;padding:12px;border-radius:10px;
+  cursor:pointer;text-align:left;font-family:inherit;transition:.15s;font-size:14px;
+}
+.option:hover{background:#f8fafc}
+.option.selected{border-color:#64748b;background:#f1f5f9}
+.option.correct{background:#dcfce7;border-color:#22c55e}
+.option.wrong{background:#fee2e2;border-color:#ef4444}
+.feedback{margin-top:12px;padding:11px;border-radius:9px;display:none;line-height:1.5;font-size:14px}
+.feedback.show{display:block}
+.feedback.good{background:#dcfce7;color:#166534}
+.feedback.bad{background:#fee2e2;color:#991b1b}
+.summary{display:none;margin-top:16px;padding:18px;border-radius:16px;background:#f8fafc;border:1px solid #e2e8f0}
+.summary.show{display:block}
+.score{font-size:28px;font-weight:700;text-align:center;margin:8px}
+.error-item{background:#fff;border-radius:9px;padding:11px;margin:7px 0;border-left:4px solid #ef4444;font-size:14px}
+
+.empty-unit{max-width:520px;margin:80px auto;text-align:center;background:#fff;border:1px solid var(--line);border-radius:22px;padding:44px 26px;box-shadow:0 10px 30px rgba(15,23,42,.06)}
+.empty-icon{font-size:44px;margin-bottom:10px}
+.empty-unit h3{margin:0 0 6px;font-size:19px;font-family:'Vazirmatn',sans-serif}
+.empty-unit p{color:#64748b;font-size:14px;margin:0}
+
+/* ========== MY WORDS (custom flashcards) ========== */
+.add-word-box{background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:18px;max-width:650px;margin-left:auto;margin-right:auto;box-shadow:0 6px 18px rgba(15,23,42,.05)}
+.add-word-title{font-weight:700;margin-bottom:10px;font-size:14px;color:#334155}
+.add-word-fields{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px}
+.add-word-fields input{border:1px solid #e2e8f0;border-radius:10px;padding:10px 12px;font-family:inherit;font-size:13.5px;outline:none;width:100%}
+.add-word-fields input.persian-input{font-family:'Vazirmatn',sans-serif;text-align:right}
+.add-word-fields input:focus{border-color:#334155}
+.my-word-actions{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;justify-content:center}
+.my-word-actions .btn{font-size:12.5px;padding:8px 12px}
+@media(max-width:650px){.add-word-fields{grid-template-columns:1fr}}
+
+@media(max-width:650px){
+  .logo{font-size:48px}
+  .main-tab{min-width:70px;padding:8px 10px;font-size:12px}
+  .front h2{font-size:28px}
+  .card-face{padding:18px}
+  .info-grid{grid-template-columns:1fr}
+  .options{grid-template-columns:1fr}
+  .question-text{font-size:16px}
+  .watermark{font-size:20px}
+  .unit-icons{gap:18px}
+  .unit-icon{width:76px}
+  .unit-icon .circle{width:50px;height:50px;font-size:18px}
+}
+
+/* ===== Compact custom-card add + word-list ===== */
+.add-card-fab{width:46px;height:46px;border-radius:50%;border:0;background:#334155;color:#fff;font-size:28px;line-height:1;cursor:pointer;box-shadow:0 6px 16px rgba(15,23,42,.16);display:inline-flex;align-items:center;justify-content:center;transition:.15s}
+.add-card-fab:hover{transform:translateY(-2px) scale(1.03)}
+.add-card-head{display:flex;align-items:center;justify-content:center;gap:10px;margin:4px 0 14px}
+.add-card-head span{font-size:13px;color:#64748b;font-weight:600}
+.custom-modal{position:fixed;inset:0;background:rgba(15,23,42,.55);display:none;align-items:center;justify-content:center;z-index:3500;padding:16px}
+.custom-modal.show{display:flex}
+.custom-card-form{background:#fff;width:min(520px,94vw);border-radius:20px;padding:22px;box-shadow:0 20px 50px rgba(0,0,0,.22)}
+.custom-card-form h3{margin:0 0 14px;text-align:center;font-size:19px}
+.custom-fields{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.custom-fields input{width:100%;border:1px solid #e2e8f0;border-radius:10px;padding:10px 12px;font-family:inherit;font-size:13px;outline:none}
+.custom-fields input.full{grid-column:1/-1}
+.custom-fields input.persian-input{font-family:'Vazirmatn',sans-serif;text-align:right}
+.custom-modal-actions{display:flex;gap:8px;justify-content:center;margin-top:14px;flex-wrap:wrap}
+.wordlist-wrap{background:#fff;border:1px solid var(--line);border-radius:18px;padding:14px;box-shadow:0 6px 20px rgba(15,23,42,.05)}
+.wordlist-toolbar{display:flex;justify-content:center;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.wordlist-toolbar button{border:1px solid #e2e8f0;background:#fff;border-radius:9px;padding:6px 10px;cursor:pointer;font-weight:700}
+.wordlist-toolbar .zoom-value{font-size:12px;color:#64748b;min-width:45px;text-align:center}
+.wordlist-scroll{overflow:auto;max-height:72vh}
+.wordlist-table{border-collapse:collapse;width:100%;font-size:10px;direction:ltr}
+.wordlist-table th,.wordlist-table td{border:1px solid #d9dee7;padding:5px 6px;vertical-align:top;line-height:1.35}
+.wordlist-table th{background:#f1f5f9;font-weight:700;position:sticky;top:0;z-index:1}
+.wordlist-table td.fa{direction:rtl;text-align:right;font-family:'Vazirmatn',sans-serif}
+.wordlist-print{font-family:inherit;font-size:12px!important} .pos-inline{font-weight:700;color:#64748b;white-space:nowrap} @media print{.pos-inline{color:#000!important}}
+@media(max-width:650px){.custom-fields{grid-template-columns:1fr}.custom-fields input.full{grid-column:auto}}
+@media print{
+  body *{visibility:hidden!important}
+  #sectionWORDLIST,#sectionWORDLIST *{visibility:visible!important}
+  #sectionWORDLIST{position:absolute;left:0;top:0;width:100%;margin:0;padding:0}
+  .wordlist-toolbar{display:none!important}.wordlist-wrap{box-shadow:none;border:0}.wordlist-scroll{max-height:none;overflow:visible}
+}
+
+
+/* Requested refinements */
+.logo-wrap{margin-bottom:10px}.logo-sub{font-size:15px;color:#334155;font-weight:700}
+.unit-icons{margin-top:34px}.unit-icon .circle{background:rgba(255,255,255,.35)!important;color:#334155!important;border:3px solid currentColor;box-shadow:none}
+.unit-icon.u1 .circle{color:#d19a00}.unit-icon.u2 .circle{color:#079669}.unit-icon.u3 .circle{color:#7650d9}
+.main-tab{min-width:54px;padding:9px 13px}.section-title{display:none}
+.edit-card-btn{background:#f1f5f9!important;color:#334155!important;border:1px solid #cbd5e1!important}
+
+
+
+
+/* Home Unit buttons: pastel, plain labels */
+.unit-icon .circle{width:58px;height:58px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+.unit-icon.u1 .circle{background:#F7E7B5;color:#705500;border:3px solid #705500}
+.unit-icon.u2 .circle{background:#CDEBD9;color:#185C42;border:3px solid #185C42}
+.unit-icon.u3 .circle{background:#E4D5F3;color:#563875;border:3px solid #563875}
+.unit-icon.u1 span{color:#705500}.unit-icon.u2 span{color:#185C42}.unit-icon.u3 span{color:#563875}
+
+
+/* Home Unit icons: original Unit hues, pastel fills, no emoji */
+.unit-icon .circle{width:58px;height:58px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+.unit-icon.u1 .circle{background:#F8E9B6;color:#8A6500;border:3px solid #8A6500}
+.unit-icon.u2 .circle{background:#CDEDDD;color:#176B4A;border:3px solid #176B4A}
+.unit-icon.u3 .circle{background:#E4D7F4;color:#5F3B86;border:3px solid #5F3B86}
+.unit-icon.u1 span{color:#8A6500}.unit-icon.u2 span{color:#176B4A}.unit-icon.u3 span{color:#5F3B86}
+
+/* Home Unit circles: original Unit colors, pastel fills, dark borders */
+.unit-icon .circle{
+  width:58px;height:58px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;font-weight:700;
+  box-shadow:0 3px 10px rgba(0,0,0,.10);
+  border:3px solid currentColor;
+  background:rgba(255,255,255,.35);
+}
+.unit-icon.u1 .circle{background:#F7E8B5;color:#B38300;border-color:#B38300}
+.unit-icon.u2 .circle{background:#CDEDDC;color:#16835F;border-color:#16835F}
+.unit-icon.u3 .circle{background:#E4D8F5;color:#7650B2;border-color:#7650B2}
+.unit-icon span{font-size:13px;font-weight:700;text-align:center;color:#5f6368}
+
+
+/* ===== FINAL COMPLETE HOME PAGE POLISH ===== */
+html, body {
+  font-family: "Google Sans", "Product Sans", Arial, Helvetica, sans-serif !important;
+}
+
+#homeView {
+  min-height: 100vh;
+  height: 100vh;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center !important;
+  align-items: center;
+  padding: 18px 16px;
+  overflow-y: auto;
+}
+@supports (height:100svh) {
+  #homeView { min-height:100svh; height:100svh; }
+}
+@supports (height:100dvh) {
+  #homeView { min-height:100dvh; height:100dvh; }
+}
+
+#homeView input,
+#homeView button,
+#homeView select,
+#homeView textarea {
+  font-family: "Google Sans", "Product Sans", Arial, Helvetica, sans-serif !important;
+}
+
+#homeView .unit-icon .circle,
+#homeView .unit-circle,
+#homeView .unit-btn {
+  border-width: 1.5px !important;
+}
+
+#homeView .unit-icon.u1 .circle {
+  background: rgba(247,232,181,.42) !important;
+  border-color: #B38300 !important;
+}
+#homeView .unit-icon.u2 .circle {
+  background: rgba(205,237,220,.42) !important;
+  border-color: #16835F !important;
+}
+#homeView .unit-icon.u3 .circle {
+  background: rgba(228,216,245,.42) !important;
+  border-color: #7650B2 !important;
+}
+
+/* The colored text directly below the title: softer and regular-weight. */
+#homeView .subtitle,
+#homeView .tagline,
+#homeView .home-subtitle,
+#homeView .app-subtitle {
+  font-weight: 400 !important;
+  opacity: .72 !important;
+}
+
+
+/* ===== NAVIGATION-SAFE HOME LAYOUT ===== */
+#homeView {
+  min-height:100vh;
+  height:100vh;
+  box-sizing:border-box;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  padding:18px 16px;
+  overflow-y:auto;
+}
+@supports (height:100svh){
+  #homeView{min-height:100svh;height:100svh;}
+}
+@supports (height:100dvh){
+  #homeView{min-height:100dvh;height:100dvh;}
+}
+#homeView .unit-icon .circle{
+  border-width:1.5px !important;
+}
+#homeView .unit-icon.u1 .circle{
+  background:rgba(247,232,181,.42) !important;
+  border-color:#B38300 !important;
+}
+#homeView .unit-icon.u2 .circle{
+  background:rgba(205,237,220,.42) !important;
+  border-color:#16835F !important;
+}
+#homeView .unit-icon.u3 .circle{
+  background:rgba(228,216,245,.42) !important;
+  border-color:#7650B2 !important;
+}
+#homeView .logo-sub{
+  font-weight:400 !important;
+  opacity:.72 !important;
+}
+
+
+/* ===== WORD LIST / PDF SHEET ===== */
+.wordlist-head{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  margin:0 0 12px;
+}
+.wordlist-head h2{margin:0;font-size:22px;font-weight:700}
+.wordlist-head p{margin:3px 0 0;color:#64748b;font-size:12px;font-weight:400}
+.wordlist-pdf-btn{
+  border:0;border-radius:10px;padding:9px 13px;cursor:pointer;
+  background:#334155;color:#fff;font:600 12px inherit;
+}
+.section-wordlist{padding-bottom:24px}
+.section-wordlist .wordlist-wrap{
+  background:#fff;border:1px solid #e5e7eb;border-radius:14px;
+  padding:10px;box-shadow:0 4px 16px rgba(15,23,42,.05);
+}
+.wordlist-table{font-family:"Google Sans","Product Sans",Arial,Helvetica,sans-serif}
+.wordlist-table th:first-child,.wordlist-table td:first-child{width:38px;text-align:center}
+.wordlist-table th:nth-child(2){min-width:150px}
+.wordlist-table th:nth-child(3),.wordlist-table th:nth-child(4){min-width:120px}
+.wordlist-table th:nth-child(5){min-width:190px}
+.wordlist-table th:nth-child(6){min-width:130px}
+.wordlist-table td.fa{font-family:"Vazirmatn",Arial,sans-serif}
+.custom-word-row{background:#fafafa}
+@media(max-width:650px){
+  .wordlist-head{align-items:flex-start}
+  .wordlist-head h2{font-size:19px}
+  .wordlist-pdf-btn{padding:8px 10px}
+  .wordlist-scroll{max-height:68vh}
+}
+@media print{
+  @page{size:A4 portrait;margin:10mm}
+  body *{visibility:hidden!important}
+  #sectionWORDLIST,#sectionWORDLIST *{visibility:visible!important}
+  #sectionWORDLIST{
+    position:absolute!important;left:0!important;top:0!important;width:100%!important;
+    margin:0!important;padding:0!important;background:#fff!important;
+  }
+  #sectionWORDLIST .wordlist-head{
+    display:flex!important;margin-bottom:8px!important;
+  }
+  #sectionWORDLIST .wordlist-pdf-btn,
+  #sectionWORDLIST .wordlist-toolbar{display:none!important}
+  #sectionWORDLIST .wordlist-wrap{
+    border:0!important;box-shadow:none!important;padding:0!important;
+  }
+  #sectionWORDLIST .wordlist-scroll{
+    max-height:none!important;overflow:visible!important;
+  }
+  #sectionWORDLIST .wordlist-table{
+    width:100%!important;font-size:10px!important;
+  }
+  #sectionWORDLIST .wordlist-table th,
+  #sectionWORDLIST .wordlist-table td{
+    border:1px solid #cbd5e1!important;
+    padding:5px 6px!important;
+    color:#111827!important;
+  }
+  #sectionWORDLIST .wordlist-table th{
+    background:#f1f5f9!important;
+    -webkit-print-color-adjust:exact;
+    print-color-adjust:exact;
+  }
+  #sectionWORDLIST .wordlist-table tr{page-break-inside:avoid}
+}
+
+
+/* Compact Word List */
+.wordlist-wrap{
+  max-width: 100%;
+  overflow-x: auto;
+}
+.wordlist-table{
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-family: "Times New Roman", Times, serif !important;
+  font-size: 13px !important;
+}
+.wordlist-table th,
+.wordlist-table td{
+  padding: 6px 7px !important;
+  line-height: 1.25 !important;
+  vertical-align: middle;
+  word-break: normal;
+}
+.wordlist-table th{
+  font-size: 12px !important;
+  font-weight: 700;
+}
+.wordlist-table th:nth-child(1),
+.wordlist-table td:nth-child(1){width: 5%;}
+.wordlist-table th:nth-child(2),
+.wordlist-table td:nth-child(2){width: 18%;}
+.wordlist-table th:nth-child(3),
+.wordlist-table td:nth-child(3){width: 17%;}
+.wordlist-table th:nth-child(4),
+.wordlist-table td:nth-child(4){width: 17%;}
+.wordlist-table th:nth-child(5),
+.wordlist-table td:nth-child(5){width: 27%;}
+.wordlist-table th:nth-child(6),
+.wordlist-table td:nth-child(6){width: 16%;}
+
+
+/* Final Word List table fix */
+.wordlist-wrap{
+  width:100%;
+  max-width:100%;
+  overflow-x:auto;
+  -webkit-overflow-scrolling:touch;
+}
+.wordlist-table{
+  width:100%;
+  min-width:760px;
+  table-layout:fixed !important;
+  border-collapse:collapse;
+  font-family:"Times New Roman", Times, serif !important;
+  font-size:10px !important;
+}
+.wordlist-table th,
+.wordlist-table td{
+  box-sizing:border-box;
+  padding:5px 6px !important;
+  line-height:1.3 !important;
+  vertical-align:middle;
+  white-space:normal !important;
+  overflow-wrap:anywhere;
+  word-break:normal;
+}
+.wordlist-table th{
+  font-size:10px !important;
+  font-weight:700;
+}
+.wordlist-table th:nth-child(1), .wordlist-table td:nth-child(1){width:5%;}
+.wordlist-table th:nth-child(2), .wordlist-table td:nth-child(2){width:18%;}
+.wordlist-table th:nth-child(3), .wordlist-table td:nth-child(3){width:17%;}
+.wordlist-table th:nth-child(4), .wordlist-table td:nth-child(4){width:17%;}
+.wordlist-table th:nth-child(5), .wordlist-table td:nth-child(5){width:27%;}
+.wordlist-table th:nth-child(6), .wordlist-table td:nth-child(6){width:16%;}
+
+@media (max-width:700px){
+  .wordlist-table{
+    min-width:700px;
+    font-size:10px !important;
+  }
+  .wordlist-table th,
+  .wordlist-table td{
+    padding:4px 5px !important;
+  }
+}
+
+/* Make Word List controls compact and prevent PDF controls from taking space */
+.wordlist-head{
+  gap:6px !important;
+}
+
+
+/* Final Word List layout */
+.wordlist-table{font-family:"Times New Roman",Times,serif!important;font-size:10px!important;table-layout:fixed!important;width:100%!important;border-collapse:collapse!important;}
+.wordlist-table th,.wordlist-table td{font-size:10px!important;padding:5px 6px!important;line-height:1.28!important;white-space:normal!important;overflow-wrap:anywhere!important;word-break:normal!important;vertical-align:middle!important;box-sizing:border-box!important;}
+.wordlist-table th:nth-child(1),.wordlist-table td:nth-child(1){width:5%!important;}
+.wordlist-table th:nth-child(2),.wordlist-table td:nth-child(2){width:18%!important;}
+.wordlist-table th:nth-child(3),.wordlist-table td:nth-child(3){width:17%!important;}
+.wordlist-table th:nth-child(4),.wordlist-table td:nth-child(4){width:27%!important;}
+.wordlist-table th:nth-child(5),.wordlist-table td:nth-child(5){width:17%!important;}
+.wordlist-table th:nth-child(6),.wordlist-table td:nth-child(6){width:16%!important;}
+.wordlist-scroll{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.wordlist-toolbar{display:flex;align-items:center;justify-content:flex-end;gap:6px;margin:0 0 8px;}
+.wordlist-toolbar button{font-family:"Times New Roman",Times,serif;font-size:11px;padding:5px 8px;border:1px solid #cbd5e1;border-radius:8px;background:#fff;cursor:pointer;}
+@media(max-width:700px){.wordlist-table{min-width:700px!important;}.wordlist-table th,.wordlist-table td{font-size:10px!important;padding:4px 5px!important;}}
+
+/* Word List: functional font-size controls */
+.wordlist-table{
+  font-family:"Times New Roman", Times, serif !important;
+  font-size:var(--wl-font-size, 10px) !important;
+}
+.wordlist-table th,
+.wordlist-table td{
+  font-size:inherit !important;
+}
+.wordlist-table th{
+  font-weight:700;
+}
+.wordlist-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  flex-wrap:wrap;
+}
+.wordlist-tools{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  flex-wrap:wrap;
+}
+.wordlist-tools button{
+  font-family:"Times New Roman", Times, serif;
+  min-height:32px;
+}
+.wordlist-font-size{
+  min-width:42px;
+  text-align:center;
+  font-size:12px;
+  font-weight:700;
+}
+@media print{
+  .wordlist-table{
+    --wl-font-size:10px !important;
+    font-size:10px !important;
+  }
+  .wordlist-table th,
+  .wordlist-table td{
+    font-size:10px !important;
+    padding:3px 4px !important;
+    line-height:1.2 !important;
+  }
+}
+
+
+@media print{
+  @page{size:A4 portrait;margin:7mm;}
+  .wordlist-wrap{width:100% !important;overflow:visible !important;}
+  .wordlist-table{
+    width:100% !important;
+    min-width:0 !important;
+    table-layout:fixed !important;
+    font-size:10px !important;
+    line-height:1.15 !important;
+  }
+  .wordlist-table th,
+  .wordlist-table td{
+    padding:2.5px 3px !important;
+    white-space:normal !important;
+    overflow-wrap:break-word !important;
+    word-break:normal !important;
+  }
+  .wordlist-table th:nth-child(1), .wordlist-table td:nth-child(1){width:4% !important;}
+  .wordlist-table th:nth-child(2), .wordlist-table td:nth-child(2){width:17% !important;}
+  .wordlist-table th:nth-child(3), .wordlist-table td:nth-child(3){width:19% !important;}
+  .wordlist-table th:nth-child(4), .wordlist-table td:nth-child(4){width:16% !important;}
+  .wordlist-table th:nth-child(5), .wordlist-table td:nth-child(5){width:16% !important;}
+  .wordlist-table th:nth-child(6), .wordlist-table td:nth-child(6){width:28% !important;}
+}
+
+</style>
+</head>
+<body>
+
+<div id="bgLayer"></div>
+<div id="bgOverlay"></div>
+
+<!-- ===================== PROFILE ===================== -->
+<div class="profile-fab" onclick="openProfileModal()" title="Profile">
+  <span id="profileFabIcon">👤</span>
+  <img id="profileFabImg" alt="profile">
+</div>
+
+<div class="profile-overlay" id="profileOverlay">
+  <div class="profile-card">
+    <h3 id="modalTitle">Profile Picture</h3>
+    <p class="sub" id="modalSub">This photo appears as your profile icon in the top-right corner.</p>
+    <div class="profile-mode-tabs">
+      <button class="mode-tab active" id="modeTab-profile" onclick="switchPhotoMode('profile')">🖼 Profile Picture</button>
+      <button class="mode-tab" id="modeTab-background" onclick="switchPhotoMode('background')">🌄 Background</button>
+    </div>
+    <div class="storage-warning" id="storageWarning">⚠ This browser/app is blocking permanent saving here. Open this file directly in Chrome or Safari (not inside Telegram/WhatsApp/Instagram's built-in preview) for it to actually save.</div>
+
+    <!-- Step 1: choose a photo -->
+    <div id="chooseStep">
+      <div class="profile-preview-wrap" id="previewWrap">
+        <span id="previewPlaceholder">📷</span>
+        <img id="profilePreview" alt="preview">
+      </div>
+      <label class="profile-btn upload" for="photoInput">Choose Photo</label>
+      <input type="file" id="photoInput" accept="image/*" onchange="handlePhotoSelect(event)">
+    </div>
+
+    <!-- Step 2: crop the photo -->
+    <div id="cropStep" style="display:none">
+      <div class="crop-stage" id="cropStage">
+        <img id="cropImg" draggable="false" alt="crop">
+      </div>
+      <p class="crop-hint">Drag to reposition · use the slider to zoom</p>
+      <input type="range" id="zoomRange" min="100" max="300" value="100">
+      <button class="profile-btn pickagain" onclick="cancelCrop()">Choose a different photo</button>
+    </div>
+
+    <div class="profile-actions">
+      <button class="profile-btn save" id="saveBtn" onclick="saveProfilePhoto()" style="display:none">Save Photo</button>
+      <button class="profile-btn remove" onclick="removeProfilePhoto()">Remove Photo</button>
+      <button class="profile-btn close" onclick="closeProfileModal()">Close</button>
+    </div>
+    <div class="profile-status" id="profileStatus"></div>
+  </div>
+</div>
+
+<!-- ===================== HOME VIEW ===================== -->
+<div id="homeView">
+  <div class="logo-wrap">
+    <div class="logo">
+      <span class="c1">A</span><span class="c2">E</span><span class="c3">F</span>
+      <span class="c4"> </span><span class="c5">2</span><span class="c6">A</span>
+    </div>
+    <div class="logo-sub">Ms.Hemmati&nbsp;&nbsp; Vocabulary&nbsp;&nbsp; Grammar</div>
+  </div>
+
+  <div class="search-box">
+    <input type="text" id="searchInput" placeholder="Search words, synonyms, antonyms, Persian..." autocomplete="off">
+    <div class="search-icons">🔍</div>
+  </div>
+
+  <div id="searchResults"></div>
+
+  <div class="unit-icons">
+    <div class="unit-icon u1" onclick="openUnit(1)">
+      <div class="circle">1</div>
+      <span>Unit 1</span>
+    </div>
+    <div class="unit-icon u2" onclick="openUnit(2)">
+      <div class="circle">2</div>
+      <span>Unit 2</span>
+    </div>
+    <div class="unit-icon u3" onclick="openUnit(3)">
+      <div class="circle">3</div>
+      <span>Unit 3</span>
+    </div>
+  </div>
+</div>
+
+
+<div class="custom-modal" id="editCardModal" onclick="if(event.target===this)closeEditCardModal()">
+  <div class="custom-card-form">
+    <h3>✏️ Edit Flashcard</h3>
+    <div class="custom-fields">
+      <input id="editWordInput" class="full" placeholder="English word">
+      <input id="editMeaningInput" class="persian-input" dir="rtl" placeholder="معنی فارسی">
+      <input id="editPosInput" placeholder="Part of speech">
+      <input id="editSynInput" placeholder="Synonym">
+      <input id="editAntInput" placeholder="Antonym">
+      <input id="editDefInput" class="full" placeholder="Simple definition">
+      <input id="editExampleInput" class="full" placeholder="Simple example phrase/sentence">
+      <input id="editPhoneticInput" class="full" placeholder="Phonetic">
+    </div>
+    <div class="custom-modal-actions">
+      <button class="btn m-btn" onclick="saveEditedCard()">Save Changes</button>
+      <button class="btn" style="background:#f1f5f9;color:#334155" onclick="closeEditCardModal()">Back / Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div class="custom-modal" id="customWordModal" onclick="if(event.target===this)closeCustomWordModal()">
+  <div class="custom-card-form">
+    <h3>➕ New Flashcard</h3>
+    <div class="custom-fields">
+      <input id="newWordInput" class="full" placeholder="English word">
+      <input id="newMeaningInput" class="persian-input" dir="rtl" placeholder="معنی فارسی">
+      <input id="newPosInput" placeholder="Part of speech (optional)">
+      <input id="newSynInput" placeholder="Synonym (optional)">
+      <input id="newAntInput" placeholder="Antonym (optional)">
+      <input id="newExampleInput" class="full" placeholder="Example sentence (optional)">
+    </div>
+    <div class="custom-modal-actions">
+      <button class="btn m-btn" onclick="addCustomWord()">Save Flashcard</button>
+      <button class="btn" style="background:#f1f5f9;color:#334155" onclick="closeCustomWordModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== UNIT VIEW ===================== -->
+<div id="unitView">
+  <button class="home-btn" onclick="goHome()">← Home</button>
+
+  <header>
+    <div class="watermark" id="unitTitle">AEF 2A Unit</div>
+    <div class="teacher">Ms.Hemmati</div>
+  </header>
+
+  <nav class="main-tabs" id="mainTabs"></nav>
+  <div id="sectionsContainer"></div>
+</div>
+
+
+<script>
+/* Browser compatibility: avoid errors on browsers without Web Speech API. */
+window.__speechOK = ('speechSynthesis' in window) && ('SpeechSynthesisUtterance' in window);
+</script>
+<script>
+
+/* =====================================================
+   DATA — Unit 1
+   Each vocab item: [Word, PartOfSpeech, Synonym, Antonym, Definition, Example, Phonetic, Persian]
+===================================================== */
+const U1 = {
+  vocabA: [
+["Questionnaire","Noun","survey","","a list of written questions to collect information","Please fill out this questionnaire about your shopping habits.","/ˌkwestʃəˈneər/","پرسشنامه"],
+["The movies","Noun phrase","the cinema","","a trip to see a film at the cinema","We went to the movies last night to see a comedy.","/ðə ˈmuːviz/","سینما (رفتن به سینما)"],
+["FBI","Abbreviation","","","the U.S. national police agency","The FBI is investigating the robbery downtown.","/ˌef biː ˈaɪ/","اداره تحقیقات فدرال آمریکا"],
+["USB","Abbreviation","","","a common computer connector type","I saved my photos on a USB flash drive.","/ˌjuː es ˈbiː/","پورت یا حافظه یواس‌بی"],
+["VIP","Abbreviation","","","a very important person given special treatment","The singer was treated like a VIP at the hotel.","/ˌviː aɪ ˈpiː/","شخص خیلی مهم"],
+["ATM","Abbreviation","cash machine","","a machine that gives out cash","I need to find an ATM to get some cash.","/ˌeɪ tiː ˈem/","دستگاه خودپرداز"],
+["BBC","Abbreviation","","","the UK's national broadcaster","She listens to the BBC News every morning.","/ˌbiː biː ˈsiː/","شرکت پخش بریتانیا"],
+["DJ","Noun","disc jockey","","someone who plays and mixes music","The DJ played our favorite song at the party.","/ˌdiː ˈdʒeɪ/","دی‌جی، پخش‌کننده موسیقی"],
+["IT","Abbreviation","","","computers and technology","My brother works in the IT department of a bank.","/ˌaɪ ˈtiː/","فناوری اطلاعات"],
+["ID","Abbreviation","identification","","a card that shows who you are","You need to show your ID to enter the building.","/ˌaɪ ˈdiː/","کارت شناسایی"],
+["Intonation","Noun","","","the rise and fall of your voice","Her intonation showed that she was asking a question.","/ˌɪntəˈneɪʃən/","آهنگ کلام، لحن گفتار"],
+["Extract","Verb","take out","insert","to take something out","The dentist had to extract my damaged tooth.","/ɪkˈstrækt/","استخراج کردن، بیرون کشیدن"],
+["Reservation","Noun","booking","","a booking for later","I made a reservation for two at the restaurant.","/ˌrezərˈveɪʃən/","رزرو"],
+["Delivery","Noun","","","bringing something to a place","The delivery of the package took three days.","/dɪˈlɪvəri/","تحویل، تحویل‌دهی"]
+  ],
+  vocabB: [
+["Sense of humor","Noun phrase","","","the ability to be funny or enjoy jokes","He has a great sense of humor and always makes us laugh.","/sens əv ˈhjuːmər/","حس شوخ‌طبعی"],
+["End up","Phrasal verb","","","to finally be in a situation","If you don't study, you'll end up failing the exam.","/end ʌp/","عاقبت به جایی رسیدن"],
+["Height","Noun","","","how tall someone is","What is your height in centimeters?","/haɪt/","قد، ارتفاع"],
+["Weight","Noun","","","how heavy someone is","The doctor checked my weight and height.","/weɪt/","وزن"],
+["Marital status","Noun phrase","","","single, married, or divorced","The form asked about my marital status.","/ˈmærɪtl ˈsteɪtəs/","وضعیت تأهل"],
+["Personality","Noun","character","","someone's character","She has a warm and friendly personality.","/ˌpɜːrsəˈnæləti/","شخصیت"],
+["Businessman","Noun","","","a man who works in business","Her father is a successful businessman.","/ˈbɪznəsmæn/","تاجر، مرد کاسب"],
+["Divorce","Noun / Verb","","marriage","the legal end of a marriage","They got a divorce after ten years of marriage.","/dɪˈvɔːrs/","طلاق"],
+["Remarried","Verb / Adjective","","","married again after divorce","My uncle remarried two years after his wife passed away.","/ˌriːˈmærid/","دوباره ازدواج‌کرده"],
+["Generous","Adjective","","mean","willing to give a lot; not selfish","He is very generous and always shares what he has.","/ˈdʒenərəs/","سخاوتمند، دست‌ودل‌باز"],
+["Spark","Noun / Verb","attraction","","a sudden feeling of attraction","There was an instant spark between them when they met.","/spɑːrk/","جرقه، شور و اشتیاق"],
+["Destiny","Noun","fate","","what will happen; fate","She believes it was her destiny to become a doctor.","/ˈdestəni/","سرنوشت، تقدیر"],
+["Preferably","Adverb","ideally","","ideally; if possible","Come early, preferably before eight o'clock.","/ˈprefərəbli/","ترجیحاً"],
+["Independent","Adjective","self-reliant","dependent","not needing others' help","She is very independent and lives alone.","/ˌɪndɪˈpendənt/","مستقل"],
+["Occupation","Noun","job","","a person's job","Please state your occupation on the form.","/ˌɑːkjuˈpeɪʃən/","شغل، حرفه"],
+["Describe","Verb","explain","","to say what something is like","describe the picture","/dɪˈskraɪb/","توصیف کردن"],
+["Hardworking","Adjective","","lazy","putting in a lot of effort","She is a hardworking student who studies every day.","/ˌhɑːrdˈwɜːrkɪŋ/","سخت‌کوش، پرتلاش"],
+["Talkative","Adjective","chatty","quiet","liking to talk a lot","My little sister is very talkative.","/ˈtɔːkətɪv/","پرحرف"],
+["Cheap","Adjective","inexpensive","expensive","low in price","This restaurant is cheap but the food is delicious.","/tʃiːp/","ارزان"],
+["Swipe","Verb","","","to slide a finger or card","You have to swipe your card to pay for the bus.","/swaɪp/","کشیدن (روی صفحه یا کارت‌خوان)"],
+["Appearance","Noun","looks","","how someone looks","Her appearance was very elegant at the party.","/əˈpɪrəns/","ظاهر"],
+["Beard","Noun","","","hair on a man's chin","He has a thick, dark beard.","/bɪrd/","ریش"],
+["Mustache","Noun","","","hair on a man's upper lip","He grew a mustache last summer.","/ˈmʌstæʃ/","سبیل"],
+["Bald","Adjective","","","having no hair on the head","My grandfather is completely bald.","/bɔːld/","کچل، طاس"],
+["Slim","Adjective","thin","overweight","thin in a nice way","She has always been tall and slim.","/slɪm/","لاغر، باریک‌اندام"],
+["Overweight","Adjective","","slim","weighing more than is healthy","The doctor said he was slightly overweight.","/ˌoʊvərˈweɪt/","اضافه‌وزن، چاق"],
+["Attractive","Adjective","good-looking","unattractive","nice to look at","He is a tall, attractive young man.","/əˈtræktɪv/","جذاب"],
+["Good-looking","Adjective","attractive","","having a nice appearance","Her new boyfriend is very good-looking.","/ˌɡʊdˈlʊkɪŋ/","خوش‌تیپ، خوش‌قیافه"],
+["Extroverted","Adjective","outgoing","introverted","outgoing and sociable","He is extroverted and loves meeting new people.","/ˈekstrəvɜːrtɪd/","برون‌گرا"],
+["Date","Noun / Verb","","","a romantic outing","They went on their first date to a nice restaurant.","/deɪt/","قرار ملاقات عاشقانه"],
+["Partner","Noun","","","your husband, wife, or boyfriend/girlfriend","She introduced her partner to her parents.","/ˈpɑːrtnər/","شریک زندگی، همراه"],
+["Treat","Verb / Noun","","","to behave toward someone","He always treats his girlfriend with kindness and respect.","/triːt/","رفتار کردن با کسی"],
+["Gentleman","Noun","","","a polite, well-mannered man","He opened the door for her like a true gentleman.","/ˈdʒentlmən/","آقا، جنتلمن"],
+["Romantic","Adjective","","","loving and affectionate","They had a romantic dinner by candlelight.","/roʊˈmæntɪk/","عاشقانه، رمانتیک"],
+["Cosmetic","Noun / Adjective","makeup","","makeup or beauty products","She bought some new cosmetics from the mall.","/kɑːzˈmetɪk/","لوازم آرایشی"],
+["Promise","Verb / Noun","","","to say you will definitely do something","He promised to call her every night while he was away.","/ˈprɑːmɪs/","قول دادن"],
+["Success","Noun","achievement","failure","doing well; achieving a goal","Her hard work led to great success in her career.","/səkˈses/","موفقیت"],
+["Journalist","Noun","reporter","","someone who writes news stories","The journalist interviewed the mayor about the new project.","/ˈdʒɜːrnəlɪst/","خبرنگار، روزنامه‌نگار"],
+["Realize","Verb","","","to become aware of something","I didn't realize how late it was until I checked my phone.","/ˈriːəˌlaɪz/","متوجه شدن، پی بردن"],
+["Punctual","Adjective","on time","late","always on time","He is always punctual for meetings.","/ˈpʌŋktʃuəl/","وقت‌شناس"],
+["Enthusiastic","Adjective","excited","indifferent","excited and interested","enthusiastic students","/ɪnˌθuːziˈæstɪk/","مشتاق، پرشور"]
+  ],
+  vocabC: [
+["Remake","Noun / Verb","","","a new version of an old film","The 2023 remake of the classic film received mixed reviews.","/ˈriːmeɪk/","بازسازی (فیلم و غیره)"],
+["Apron","Noun","","","clothing worn to protect clothes while cooking","She put on an apron before she started cooking.","/ˈeɪprən/","پیش‌بند"],
+["Occasion","Noun","event","","a special event or time","We only use this china on special occasions.","/əˈkeɪʒən/","مناسبت، رویداد خاص"],
+["Prefer","Verb","","","to like one thing more","I prefer tea to coffee in the morning.","/prɪˈfɜːr/","ترجیح دادن"],
+["Servant","Noun","","","someone paid to work in a house","In the past, wealthy families often had several servants.","/ˈsɜːrvənt/","خدمتکار"],
+["Typical","Adjective","usual","unusual","usual; normal for someone","A typical day for her starts with coffee and the news.","/ˈtɪpɪkəl/","معمول، نمونه‌وار"],
+["Especially","Adverb","particularly","","more than others; particularly","I love fruit, especially strawberries.","/ɪˈspeʃəli/","به‌ویژه، خصوصاً"],
+["Maid","Noun","","","a woman who cleans a house or hotel","The hotel maid cleaned our room every morning.","/meɪd/","خدمتکار زن"],
+["Pour","Verb","","","to make liquid flow out","She poured some milk into the glass.","/pɔːr/","ریختن (مایعات)"],
+["Inspire","Verb","","","to give someone motivation","Her success inspired me to work harder toward my goals.","/ɪnˈspaɪər/","الهام بخشیدن"],
+["Jug","Noun","pitcher","","a container for pouring liquid","He filled the jug with fresh orange juice.","/dʒʌɡ/","پارچ، کوزه"],
+["Pearl","Noun","","","a shiny round gem from oysters","She wore a beautiful pearl necklace to the wedding.","/pɜːrl/","مروارید"]
+  ],
+  vocabR: [
+["Quality","Noun","standard","","how good or bad something is","This hotel is known for the excellent quality of its service.","/ˈkwɑːləti/","کیفیت"],
+["Air conditioning","Noun phrase","AC","","a system that cools the air","turn on the air conditioning","/er kənˈdɪʃənɪŋ/","تهویه مطبوع، کولر"],
+["Bother","Verb","annoy","","to take the trouble; or to annoy","Please don't bother calling him now — he's already asleep.","/ˈbɑːðər/","زحمت کشیدن؛ اذیت کردن"],
+["Flight","Noun","","","a trip by plane","Our flight to London departs at nine o'clock tomorrow.","/flaɪt/","پرواز"],
+["Imaginary","Adjective","","real","not real; only in your mind","Many young children have imaginary friends.","/ɪˈmædʒəˌneri/","خیالی، تصوری"],
+["Enormous","Adjective","huge","tiny","very, very big","an enormous house","/ɪˈnɔːrməs/","عظیم، بسیار بزرگ"],
+["Sightseeing","Noun","","","visiting famous places as a tourist","go sightseeing","/ˈsaɪtˌsiːɪŋ/","گردش و بازدید از جاذبه‌های گردشگری"]
+  ],
+  AQuestions: [
+["Please complete this __ so we can learn about your shopping habits.",["questionnaire","reservation","delivery","intonation"],0],
+["On Friday night, we decided to go to __ to watch the new comedy.",["the movies","an ATM","a DJ","an ID"],0],
+["The __ is the national police agency responsible for investigating serious crimes in the United States.",["BBC","FBI","VIP","IT"],1],
+["I saved all my documents on a __ flash drive.",["USB","ATM","ID","DJ"],0],
+["Because he is a famous actor, he was treated like a __ at the hotel.",["VIP","ID","USB","DJ"],0],
+["I need to withdraw some cash from the __ before we go shopping.",["ATM","DJ","ID","IT"],0],
+["She listens to the __ News every morning on the radio.",["FBI","BBC","VIP","ATM"],1],
+["The __ played all our favorite songs at the wedding party.",["DJ","ID","IT","BBC"],0],
+["My cousin works in the __ department, fixing computers and networks.",["IT","ID","DJ","FBI"],0],
+["You must show your __ before you can enter the exam hall.",["ID","IT","ATM","VIP"],0],
+["Her __ rose at the end of the sentence, showing that she was asking a question.",["intonation","reservation","delivery","extraction"],0],
+["The dentist had to __ the damaged tooth.",["extract","deliver","reserve","describe"],0],
+["We made a __ for a table for four at eight o'clock.",["reservation","delivery","questionnaire","intonation"],0],
+["The __ of the package was delayed because of bad weather.",["delivery","reservation","extraction","intonation"],0]
+  ],
+  BQuestions: [
+["He always makes people laugh; he has a great __.",["sense of humor","marital status","occupation","personality"],0],
+["If you keep spending money carelessly, you'll __ in serious debt.",["end up","swipe","realize","describe"],0],
+["What is your __ in centimeters?",["height","weight","occupation","personality"],0],
+["The doctor checked his __ on the scale.",["weight","height","destiny","spark"],0],
+["The form asked about my __ — single, married, or divorced.",["marital status","occupation","appearance","personality"],0],
+["She has a warm, friendly __ that everyone loves.",["personality","occupation","appearance","destiny"],0],
+["Her father is a successful __ who owns several companies.",["businessman","journalist","servant","gentleman"],0],
+["After ten years of marriage, they decided to get a __.",["divorce","promise","reservation","occasion"],0],
+["He __ two years after his first wife passed away.",["remarried","divorced","promised","realized"],0],
+["She is very __ and always shares what she has with others.",["generous","cheap","talkative","punctual"],0],
+["There was an instant __ between them the moment they met.",["spark","destiny","appearance","occupation"],0],
+["She believes it was her __ to become a famous singer.",["destiny","occupation","appearance","personality"],0],
+["Please arrive early, __ before eight o'clock.",["preferably","especially","typically","punctually"],0],
+["She is very __ and prefers to live alone without help.",["independent","talkative","generous","extroverted"],0],
+["Please state your __ on the application form.",["occupation","appearance","personality","destiny"],0],
+["Can you __ your ideal partner to me?",["describe","realize","promise","prefer"],0],
+["She is a __ student who studies every single day.",["hardworking","talkative","cheap","punctual"],0],
+["My little brother is so __ that he never stops talking.",["talkative","hardworking","punctual","generous"],0],
+["This restaurant is __, but the food is delicious.",["cheap","generous","romantic","punctual"],0],
+["You have to __ your card to pay for the bus.",["swipe","pour","promise","treat"],0],
+["Her __ was very elegant; she looked stunning at the party.",["appearance","occupation","destiny","personality"],0],
+["He has a thick, dark __ that covers his chin and cheeks.",["beard","mustache","appearance","spark"],0],
+["He grew a __ above his upper lip last summer.",["mustache","beard","personality","occupation"],0],
+["My grandfather is completely __; he has no hair at all.",["bald","slim","overweight","generous"],0],
+["She has always been tall and __.",["slim","overweight","bald","cheap"],0],
+["The doctor said he was slightly __ and should exercise more.",["overweight","slim","bald","hardworking"],0],
+["He is a tall, __ young man that everyone notices.",["attractive","cheap","punctual","talkative"],0],
+["Her new boyfriend is very __.",["good-looking","cheap","overweight","talkative"],0],
+["He is __ and loves meeting new people at parties.",["extroverted","punctual","generous","bald"],0],
+["They went on their first __ to a nice Italian restaurant.",["date","occasion","reservation","delivery"],0],
+["She introduced her __ to her parents for the first time.",["partner","servant","maid","gentleman"],0],
+["He always __ his girlfriend with kindness and respect.",["treats","pours","describes","swipes"],0],
+["He opened the door for her like a true __.",["gentleman","businessman","journalist","servant"],0],
+["They had a __ dinner by candlelight for their anniversary.",["romantic","typical","imaginary","enormous"],0],
+["She bought some new __, like lipstick and foundation, from the mall.",["cosmetics","jugs","aprons","pearls"],0],
+["He __ to call her every night while he was away.",["promised","poured","preferred","inspired"],0],
+["Her hard work led to great __ in her career.",["success","occasion","quality","delivery"],0],
+["The __ interviewed the mayor about the new city project.",["journalist","servant","gentleman","businessman"],0],
+["I didn't __ how late it was until I checked my phone.",["realize","describe","prefer","inspire"],0],
+["He is always __ for meetings and never arrives late.",["punctual","talkative","cheap","generous"],0],
+["She was very __ about starting her exciting new job.",["enthusiastic","punctual","cheap","bald"],0]
+  ],
+  CQuestions: [
+["The 2023 __ of the classic film received mixed reviews from critics.",["remake","occasion","servant","jug"],0],
+["She put on an __ before she started cooking dinner.",["apron","pearl","jug","maid"],0],
+["We only use the good dishes on special __, like birthdays and weddings.",["occasions","remakes","aprons","jugs"],0],
+["I __ tea to coffee in the morning.",["prefer","pour","inspire","remake"],0],
+["In the past, wealthy families often employed several __ to help around the house.",["servants","maids","pearls","jugs"],0],
+["A __ day for her starts with a cup of coffee and the morning news.",["typical","imaginary","enormous","romantic"],0],
+["I love all fruit, __ strawberries and mangoes.",["especially","typically","preferably","obviously"],0],
+["The hotel __ cleaned our room every morning during our stay.",["maid","servant","journalist","businessman"],0],
+["She carefully __ the tea into small cups for the guests.",["poured","inspired","preferred","remade"],0],
+["Her incredible success __ me to work harder toward my own goals.",["inspired","poured","preferred","remade"],0],
+["He filled the __ with fresh orange juice for breakfast.",["jug","apron","pearl","occasion"],0],
+["She wore a beautiful __ necklace to the wedding.",["pearl","jug","apron","servant"],0]
+  ],
+  RQuestions: [
+["This hotel is known for the excellent __ of its service.",["quality","flight","occasion","delivery"],0],
+["Please turn on the __; it's extremely hot in here.",["air conditioning","sightseeing","delivery","questionnaire"],0],
+["Please don't __ calling him now — he's already asleep.",["bother","pour","inspire","prefer"],0],
+["Our __ to London departs at nine o'clock tomorrow morning.",["flight","delivery","occasion","reservation"],0],
+["Many young children have __ friends that only exist in their minds.",["imaginary","typical","romantic","enormous"],0],
+["They live in an __ house with more than ten bedrooms.",["enormous","imaginary","typical","generous"],0],
+["We spent our whole afternoon __ around the old part of the city.",["sightseeing","bothering","delivering","questioning"],0]
+  ]
+};
+
+/* =====================================================
+   DATA — Unit 2 & Unit 3 (to be completed later)
+===================================================== */
+const U2 = {
+  vocabA: [
+    ["Mantra","Noun","","","a phrase that represents a rule","The school's mantra is \"Work hard and be kind.\"","/ˈmæntrə/","شعار، عبارت راهنما"],
+    ["In the distance","Phrase","","","far away from where you are","a house in the distance","/ɪn ðə ˈdɪstəns/","در دوردست"],
+    ["Terrible","Adjective","horrible","","very bad or unpleasant","terrible weather","/ˈterəbəl/","وحشتناک، خیلی بد"],
+    ["Invite","Verb","ask","","to ask someone to come somewhere","invite a friend","/ɪnˈvaɪt/","دعوت کردن"],
+    ["Argue","Verb","disagree","","to speak angrily because you disagree","argue about money","/ˈɑːrɡjuː/","بحث و جدل کردن"],
+    ["Go out","Phrasal verb","leave home","","to leave your home to do something","go out tonight","/ɡoʊ aʊt/","بیرون رفتن"],
+    ["Sightseeing","Noun","","","visiting famous or interesting places","We went sightseeing in the old city.","/ˈsaɪtˌsiːɪŋ/","بازدید از جاهای دیدنی"],
+    ["Sailing","Noun","going by boat","","travelling in a boat using the wind","go sailing","/ˈseɪlɪŋ/","قایق‌رانی، سفر با قایق بادبانی"],
+    ["Surfing","Noun","riding waves","","riding on waves on a board","go surfing","/ˈsɜːrfɪŋ/","موج‌سواری"],
+    ["Campsite","Noun","","","a place where people camp","a quiet campsite","/ˈkæmpsaɪt/","محل کمپ"],
+    ["Souvenir","Noun","keepsake","","something you keep to remember a place","buy a souvenir","/ˌsuːvəˈnɪr/","سوغات، یادگاری"],
+    ["Snack","Noun","","","a small amount of food between meals","a quick snack","/snæk/","میان‌وعده"],
+    ["Explore","Verb","discover","","to travel around a place to learn about it","explore the city","/ɪkˈsplɔːr/","کاوش کردن، گشتن"],
+    ["Foggy","Adjective","","clear","full of thick mist","a foggy morning","/ˈfɔːɡi/","مه‌آلود"],
+    ["Crowded","Adjective","full","empty","full of people","a crowded beach","/ˈkraʊdɪd/","شلوغ"],
+    ["Sunbathe","Verb","","","to sit or lie in the sun","sunbathe on the beach","/ˈsʌnbeɪð/","آفتاب گرفتن"]
+  ],
+  vocabB: [
+    ["Decade","Noun","","","a period of ten years","the last decade","/ˈdekeɪd/","دهه"],
+    ["Feature article","Noun phrase","","","an article about a particular subject","a feature article","/ˈfiːtʃər ˈɑːrtɪkəl/","مقاله ویژه"],
+    ["Agency","Noun","organization","","an organization that provides a service","a travel agency","/ˈeɪdʒənsi/","آژانس، سازمان"],
+    ["Advertising agency","Noun phrase","","","a company that creates advertisements for other companies","an advertising agency","/ˈædvərtaɪzɪŋ ˈeɪdʒənsi/","آژانس تبلیغاتی"],
+    ["Immediately","Adverb","at once","","at once; without waiting","call me immediately","/ɪˈmiːdiətli/","فوراً"],
+    ["Secretary","Noun","assistant","","someone who does office work and helps organize it","the office secretary","/ˈsekrəteri/","منشی"],
+    ["Attack","Verb / Noun","fight","defend","to try to hurt or defeat someone or something","attack the enemy","/əˈtæk/","حمله کردن؛ حمله"],
+    ["Opportunity","Noun","chance","","a good chance to do something","a good opportunity","/ˌɑːpərˈtuːnəti/","فرصت"],
+    ["Botanical garden","Noun phrase","","","a large garden where plants are grown for study","visit the botanical garden","/bəˈtænɪkəl ˈɡɑːrdən/","باغ گیاه‌شناسی"],
+    ["Escape","Verb","run away","","to get away from danger or a place","escape from the room","/ɪˈskeɪp/","فرار کردن"],
+    ["Semester","Noun","term","","one of the two main periods of a school year","this semester","/səˈmestər/","نیمسال، ترم"],
+    ["Nature reserve","Noun phrase","protected area","","a protected area for plants and animals","a nature reserve","/ˈneɪtʃər rɪˌzɜːrv/","منطقه حفاظت‌شده"],
+    ["Frighten","Verb","scare","","to make someone feel afraid","frighten the child","/ˈfraɪtən/","ترساندن"],
+    ["Remind","Verb","make someone remember","","to help someone remember something","remind me tomorrow","/rɪˈmaɪnd/","یادآوری کردن"],
+    ["Fall in love","Phrase","start loving","","to start loving someone romantically","fall in love","/fɔːl ɪn lʌv/","عاشق شدن"],
+    ["Break up","Phrasal verb","separate","","to end a romantic relationship","break up","/breɪk ʌp/","به هم زدن، جدا شدن"],
+    ["Sign","Verb","write your name","refuse to sign","to write your name on a paper","sign the paper","/saɪn/","امضا کردن"],
+    ["Stork","Noun","","","a large bird with long legs and a long beak","a white stork","/stɔːrk/","لک‌لک"],
+    ["Elegant","Adjective","stylish","","graceful and attractive","an elegant dress","/ˈelɪɡənt/","شیک، باوقار"],
+    ["Close-up shot","Noun phrase","","","a photo or film shot showing something very close","a close-up photo","/ˈkloʊs ʌp ʃɑːt/","نمای نزدیک"],
+    ["Far away","Phrase","distant","","at a great distance","a town far away","/fɑːr əˈweɪ/","دور، در فاصله زیاد"],
+    ["Cathedral","Noun","main church","","the main church in a city","an old cathedral","/kəˈθiːdrəl/","کلیسای جامع"],
+    ["Enormous","Adjective","huge","tiny","very large","They live in an enormous house.","/ɪˈnɔːrməs/","بسیار بزرگ، عظیم"]
+  ],
+  vocabC: [
+    ["Suddenly","Adverb","all at once","","quickly and unexpectedly","suddenly, he stopped","/ˈsʌdənli/","ناگهان"],
+    ["Awful","Adjective","terrible","","very bad or unpleasant","awful weather","/ˈɔːfəl/","افتضاح، خیلی بد"],
+    ["In a hurry","Phrase","in a rush","","doing something quickly because you have little time","I am in a hurry","/ɪn ə ˈhɜːri/","عجله داشتن"],
+    ["Approximately","Adverb","about","","close to a particular number or amount","about 100 people","/əˈprɑːksɪmətli/","تقریباً"],
+    ["Injury","Noun","harm","","damage to your body from an accident","a leg injury","/ˈɪndʒəri/","آسیب، جراحت"],
+    ["Intensive","Adjective","","","involving a lot of activity in a short time","an intensive course","/ɪnˈtensɪv/","فشرده"],
+    ["Care","Noun","help","","help and attention given to someone","take care","/ker/","مراقبت"],
+    ["Intensive care","Noun phrase","","","special medical care for very ill patients","in intensive care","/ɪnˈtensɪv ker/","مراقبت‌های ویژه"],
+    ["Dripping","Adjective","","","very wet, with water falling from it","dripping wet","/ˈdrɪpɪŋ/","چکه‌کنان، خیس و چکه‌کننده"],
+    ["Brake","Noun / Verb","stop pedal","","a device or action used to slow or stop a vehicle","press the brake","/breɪk/","ترمز؛ ترمز کردن"],
+    ["Hit (by car)","Verb","","","to be struck by a moving car","hit by a car","/hɪt/","با ماشین برخورد کردن"],
+    ["Kill","Verb","cause death","","to cause a person or animal to die","the accident killed him","/kɪl/","کشتن"],
+    ["Accident","Noun","crash","","an unexpected event that causes harm or damage","a car accident","/ˈæksɪdənt/","تصادف، حادثه"]
+  ],
+  vocabR: [
+    ["Surrounding","Adjective / Noun","nearby","","near or around a particular place","the surrounding area","/səˈraʊndɪŋ/","اطراف، پیرامون"],
+    ["Memory","Noun","something you remember","","something you remember from the past","a happy memory","/ˈmeməri/","خاطره، حافظه"],
+    ["Advantage","Noun","benefit","disadvantage","something that helps you or gives you a benefit","a big advantage","/ədˈvæntɪdʒ/","مزیت"],
+    ["Patiently","Adverb","calmly","impatiently","in a calm way while waiting","wait patiently","/ˈpeɪʃəntli/","با صبر و حوصله"],
+    ["Local market","Noun phrase","","","a market used by people who live in the area","the local market","/ˈloʊkəl ˈmɑːrkɪt/","بازار محلی"],
+    ["Enthusiastic","Adjective","eager","","very interested and excited","The students were enthusiastic about the trip.","/ɪnˌθuːziˈæstɪk/","مشتاق، پرشور"],
+    ["Similarity","Noun","likeness","difference","a way in which two things are alike","a similarity between them","/ˌsɪməˈlærəti/","شباهت"],
+    ["Architecture","Noun","building design","","the design and style of buildings","beautiful architecture","/ˈɑːrkɪtektʃər/","معماری"]
+  ]
+};
+const U3 = {
+  vocabA: [
+    ["Pick up","Phrasal verb","give someone a ride","drop off","to take someone in your car","I will pick you up at eight.","/pɪk ʌp/","سوار کردن"],
+    ["Drop off","Phrasal verb","take someone somewhere","pick up","to take someone somewhere and leave them there","I will drop you off at school.","/drɑːp ɔːf/","پیاده کردن"],
+    ["Arrival","Noun","","departure","the act of reaching a place","our arrival","/əˈraɪvəl/","ورود، رسیدن"],
+    ["Baggage check-in","Noun phrase","","","the place or process for checking in your luggage","baggage check-in","/ˈbæɡɪdʒ tʃek ɪn/","تحویل بار"],
+    ["Baggage claim","Noun phrase","","","the place where you collect your luggage at an airport","at baggage claim","/ˈbæɡɪdʒ kleɪm/","محل تحویل بار"],
+    ["Cart","Noun","","","a small vehicle used for carrying things","use a cart","/kɑːrt/","چرخ‌دستی"],
+    ["Departure","Noun","","arrival","the act of leaving a place","our departure","/dɪˈpɑːrtʃər/","حرکت، عزیمت"],
+    ["Customs","Noun","","","the place where luggage and goods are checked when entering a country","go through customs","/ˈkʌstəmz/","گمرک"],
+    ["Gate","Noun","","","a place at an airport where passengers board a plane","gate 12","/ɡeɪt/","گیت"],
+    ["Passport control","Noun phrase","","","the place where passports are checked","at passport control","/ˈpæspɔːrt kənˌtroʊl/","کنترل گذرنامه"],
+    ["Security check","Noun phrase","","","the process of checking people and bags for safety","at security check","/sɪˈkjʊrəti tʃek/","بازرسی امنیتی"],
+    ["Terminal","Noun","","","a building at an airport where passengers arrive or leave","Terminal 2","/ˈtɜːrmɪnəl/","پایانه، ترمینال"],
+    ["Jet lag","Noun","","","tiredness after travelling across different time zones","bad jet lag","/ˈdʒet læɡ/","اختلال خواب ناشی از پرواز"],
+    ["Guarantee","Verb / Noun","promise","","to promise that something will happen or be true","guarantee a clean room","/ˌɡærənˈtiː/","تضمین کردن؛ ضمانت"],
+    ["Layover","Noun","stopover","","a period of waiting between two flights","a two-hour layover","/ˈleɪoʊvər/","توقف بین دو پرواز"],
+    ["Guided tour","Noun phrase","","","a tour led by a person who explains a place","a guided tour","/ˈɡaɪdɪd tʊr/","تور با راهنما"],
+    ["Depressing","Adjective","sad","","making you feel sad","a depressing movie","/dɪˈpresɪŋ/","افسرده‌کننده"],
+    ["Connecting flight","Noun phrase","","","a flight you take after another flight to reach your destination","our connecting flight","/kəˈnektɪŋ flaɪt/","پرواز اتصالی"],
+    ["Lounge","Noun","","","a comfortable room where passengers can wait","the airport lounge","/laʊndʒ/","سالن انتظار"],
+    ["Frustrating","Adjective","annoying","","making you feel annoyed because something is difficult","a frustrating delay","/frʌˈstreɪtɪŋ/","کلافه‌کننده"],
+    ["Countryside","Noun","","","land outside towns and cities","the countryside","/ˈkʌntrisaɪd/","حومه، مناطق روستایی"],
+    ["Expand","Verb","grow","","to become larger or make something larger","expand the business","/ɪkˈspænd/","گسترش دادن، گسترش یافتن"],
+    ["Duty free","Adjective / Noun","","","goods sold at an airport without some taxes","a duty-free shop","/ˌduːti ˈfriː/","بدون عوارض گمرکی"],
+    ["Immediate","Adjective","instant","","happening or needed at once","an immediate answer","/ɪˈmiːdiət/","فوری"],
+    ["Historic site","Noun phrase","","","a place that is important in history","a historic site","/hɪˈstɔːrɪk saɪt/","مکان تاریخی"],
+    ["Forecast","Noun","prediction","","a statement about what the weather will be like","the weather forecast","/ˈfɔːrkæst/","پیش‌بینی"],
+    ["Include","Verb","contain","","to have something as part of a whole","the price includes breakfast","/ɪnˈkluːd/","شامل شدن، شامل کردن"],
+    ["Destination","Noun","place you are going","","the place you are travelling to","our destination","/ˌdestɪˈneɪʃən/","مقصد"],
+    ["Pleasure","Noun","enjoyment","","a feeling of happiness or enjoyment","a pleasure to meet you","/ˈpleʒər/","لذت"],
+    ["Boarding pass","Noun phrase","","","a document that allows you to get on a plane","show your boarding pass","/ˈbɔːrdɪŋ pæs/","کارت پرواز"]
+  ],
+  vocabB: [
+    ["Calculate","Verb","find the answer","","to find an answer using numbers","calculate the total","/ˈkælkjuleɪt/","محاسبه کردن"],
+    ["Organized","Adjective","well-planned","disorganized","good at planning and arranging things","a well-organized person","/ˈɔːrɡənaɪzd/","منظم"],
+    ["Disorganized","Adjective","badly planned","organized","bad at planning or arranging things","a disorganized desk","/dɪsˈɔːrɡənaɪzd/","نامنظم"],
+    ["Pack","Verb","","unpack","to put things into a bag or suitcase","pack my bag","/pæk/","بسته‌بندی کردن، وسایل را در چمدان گذاشتن"],
+    ["Wardrobe","Noun","closet","","a piece of furniture for clothes","the bedroom wardrobe","/ˈwɔːrˌdroʊb/","کمد لباس"],
+    ["Recommend","Verb","suggest","","to tell someone that something is good or suitable","recommend a restaurant","/ˌrekəˈmend/","توصیه کردن"],
+    ["Appointment","Noun","meeting","","an arranged time to meet someone","a doctor appointment","/əˈpɔɪntmənt/","قرار ملاقات"],
+    ["Aspects","Noun","features","","different parts or features of something","the main aspects","/ˈæspekts/","جنبه‌ها"],
+    ["Spontaneous","Adjective","unplanned","","done without planning first","a spontaneous decision","/spɑːnˈteɪniəs/","خودجوش، بدون برنامه"],
+    ["Angle","Noun","","","the direction or position from which you see something","a different angle","/ˈæŋɡəl/","زاویه"],
+    ["Terrified","Adjective","very scared","","extremely afraid","a terrified child","/ˈterəfaɪd/","وحشت‌زده"],
+    ["Look forward to","Phrasal verb","be excited about","","to feel happy about something that will happen","look forward to it","/lʊk ˈfɔːrwərd tuː/","مشتاق چیزی بودن"],
+    ["Congratulations","Noun / Interjection","","","words you say to someone to show you are happy about their success","Congratulations on your new job!","/kənˌɡrætʃəˈleɪʃənz/","تبریک"],
+    ["Extremely","Adverb","very","","to a very great degree","extremely tired","/ɪkˈstriːmli/","بسیار، فوق‌العاده"],
+    ["Adapt","Verb","adjust","","to change so you can deal with a new situation","adapt to change","/əˈdæpt/","سازگار شدن، وفق دادن"],
+    ["Tolerant","Adjective","accepting","","accepting differences in people or ideas","a tolerant person","/ˈtɑːlərənt/","بردبار، پذیرا"],
+    ["Individual","Adjective / Noun","person","","a single person or thing","each individual person","/ˌɪndɪˈvɪdʒuəl/","فردی؛ فرد"],
+    ["Belong to","Phrasal verb","","","to be owned by someone","This bag belongs to my sister.","/bɪˈlɔːŋ tuː/","متعلق بودن به"],
+    ["Depend on","Phrasal verb","rely on","","to need or be affected by someone or something","depend on you","/dɪˈpend ɑːn/","بستگی داشتن به"],
+    ["Believe in","Phrasal verb","trust","","to think that someone or something is real or good","believe in yourself","/bɪˈliːv ɪn/","باور داشتن به"],
+    ["Spend on","Phrasal verb","","","to use money for something","How much do you spend on food each week?","/spend ɑːn/","برای چیزی پول خرج کردن"],
+    ["Arrangement","Noun","plan","","a plan or preparation for something","travel arrangements","/əˈreɪndʒmənt/","ترتیب، هماهنگی"],
+    ["Arrival","Noun","","departure","the act of reaching a place","Please call me after your arrival.","/əˈraɪvəl/","ورود، رسیدن"],
+    ["Attach","Verb","","detach","to add or fasten one thing to another","Please attach the file to the email.","/əˈtætʃ/","پیوست کردن، وصل کردن"],
+    ["Attachment","Noun","file","","a file sent with an email","an email attachment","/əˈtætʃmənt/","پیوست"],
+    ["I am sorry","Phrase","I apologize","","a polite way to say you are sorry","I am sorry I am late.","/aɪ æm ˈsɑːri/","متأسفم"],
+    ["Colleague","Noun","coworker","","someone you work with","a work colleague","/ˈkɑːliːɡ/","همکار"],
+    ["Same old","Phrase","usual","","the same as usual, often boring","the same old story","/seɪm oʊld/","همان همیشگی"]
+  ],
+  vocabC: [
+    ["Operation","Noun","surgery","","a medical procedure done by a doctor","He had an operation.","/ˌɑːpəˈreɪʃən/","عمل جراحی"],
+    ["Surgeon","Noun","","","a doctor who performs operations","The surgeon explained the procedure.","/ˈsɜːrdʒən/","جراح"],
+    ["Air conditioning","Noun phrase","AC","","a system that cools the air","The air conditioning is not working.","/er kənˈdɪʃənɪŋ/","تهویه مطبوع"],
+    ["Switch off","Phrasal verb","turn off","switch on","to stop a machine or light from working","switch off the light","/swɪtʃ ɔːf/","خاموش کردن"],
+    ["Measure","Verb","find the size","","to find the size, amount, or length of something","measure the table","/ˈmeʒər/","اندازه‌گیری کردن"],
+    ["Scrabble","Noun","","","a game in which players make words from letter tiles","We played Scrabble after dinner.","/ˈskræbəl/","بازی اسکرابل"],
+    ["Crossword","Noun","","","a puzzle in which you guess words from clues","I do the crossword every Sunday.","/ˈkrɔːswɜːrd/","جدول کلمات متقاطع"],
+    ["Aim","Noun","goal","","what you want to achieve","our main aim","/eɪm/","هدف"],
+    ["Contestant","Noun","competitor","","a person who takes part in a competition","a TV contestant","/kənˈtestənt/","شرکت‌کننده، رقیب"],
+    ["Prize","Noun","award","","something given to the winner of a competition","win a prize","/praɪz/","جایزه"],
+    ["Including","Preposition","containing","","with something as part of a group or total","including breakfast","/ɪnˈkluːdɪŋ/","شاملِ"],
+    ["Host","Noun","presenter","","a person who presents a TV or radio show","the TV host","/hoʊst/","مجری"],
+    ["Definition","Noun","meaning","","the meaning of a word or idea","a simple definition","/ˌdefɪˈnɪʃən/","تعریف، توضیح معنی"],
+    ["Ping","Noun","","","a short, high sound like a small bell","I heard a ping from my phone.","/pɪŋ/","صدای کوتاه و زیر"],
+    ["Mime","Verb","act without words","","to show an action or idea using movements, not words","mime the word","/maɪm/","با حرکت نشان دادن، پانتومیم اجرا کردن"],
+    ["Translation","Noun","meaning in another language","","words changed from one language into another","an English translation","/trænzˈleɪʃən/","ترجمه"],
+    ["Describe","Verb","explain","","to say what someone or something is like","Can you describe the picture?","/dɪˈskraɪb/","توصیف کردن"],
+    ["Preceding","Adjective","previous","","coming before something else","the preceding page","/prɪˈsiːdɪŋ/","قبلی، پیشین"],
+    ["Bit","Noun","piece","","a small piece or amount","a little bit","/bɪt/","قسمت کوچک، کمی"],
+    ["Bite","Verb","","","to use your teeth to cut or hold something","Be careful; the dog may bite.","/baɪt/","گاز گرفتن"],
+    ["Paraphrase","Verb","say in different words","","to say the same thing in different words","paraphrase the sentence","/ˈpærəfreɪz/","بازنویسی کردن، به زبان دیگر گفتن"],
+    ["Sunbathe","Verb","","","to sit or lie in the sun","We spent the afternoon sunbathing.","/ˈsʌnbeɪð/","آفتاب گرفتن"]
+  ],
+  vocabR: [
+    ["Waiter","Noun","","","a man who serves food and drinks in a restaurant","The waiter brought us the menu.","/ˈweɪtər/","پیشخدمت مرد"],
+    ["Waitress","Noun","","","a woman who serves food and drinks in a restaurant","The waitress took our order.","/ˈweɪtrəs/","پیشخدمت زن"],
+    ["Menu","Noun","","","a list of food and drinks available in a restaurant","Can I see the menu, please?","/ˈmenjuː/","منو"],
+    ["Appetizer","Noun","starter","","a small dish served before the main course","order an appetizer","/ˈæpɪtaɪzər/","پیش‌غذا"],
+    ["Main course","Noun phrase","main dish","","the main dish of a meal","the main course","/ˌmeɪn ˈkɔːrs/","غذای اصلی"],
+    ["Dessert","Noun","","","sweet food eaten at the end of a meal","We had ice cream for dessert.","/dɪˈzɜːrt/","دسر"],
+    ["Bill","Noun","check","","the amount of money you must pay for a meal","pay the bill","/bɪl/","صورتحساب"],
+    ["Tip","Noun","","","extra money given to a waiter for good service","We left a tip for the waiter.","/tɪp/","انعام"],
+    ["Rare","Adjective","","well done","meat cooked for a short time and still red inside","I'd like my steak rare, please.","/rer/","کم‌پخت، داخل قرمز"],
+    ["Medium","Adjective","","","meat cooked so it is partly pink inside","I'd like my steak medium, please.","/ˈmiːdiəm/","متوسط‌پخت"],
+    ["Well done","Adjective","","rare","meat cooked completely through","He always orders his steak well done.","/ˌwel ˈdʌn/","کاملاً پخته"],
+    ["Pizzeria","Noun","","","a restaurant that serves pizza","Let's eat at the pizzeria tonight.","/ˌpiːtsəˈriːə/","پیتزافروشی"],
+    ["Still water","Noun phrase","","sparkling water","plain water without bubbles","I would like still water, please.","/stɪl ˈwɔːtər/","آب بدون گاز"],
+    ["Sparkling water","Noun phrase","","still water","water with bubbles in it","She ordered sparkling water.","/ˈspɑːrklɪŋ ˈwɔːtər/","آب گازدار"],
+    ["Apologize","Verb","say sorry","","to say that you are sorry","apologize to her","/əˈpɑːlədʒaɪz/","عذرخواهی کردن"],
+    ["Brilliant","Adjective","excellent","","very good or impressive","a brilliant idea","/ˈbrɪliənt/","عالی، فوق‌العاده"]
+  ]
+};
+function makeGeneratedQuestions(data){
+  const out={};
+  const contexts = {"Mantra": "The school’s _____ is “Work hard and be kind.”", "In the distance": "We could see a small house _____.", "Terrible": "The weather was _____.", "Invite": "I will _____ my friend to dinner.", "Argue": "They often _____ about money.", "Go out": "We usually _____ on Friday night.", "Sightseeing": "We went _____ in the old city.", "Sailing": "We went _____ on the lake.", "Surfing": "They went _____ at the beach.", "Campsite": "We stayed at a quiet _____.", "Souvenir": "I bought a _____ from Paris.", "Snack": "I had a quick _____ before dinner.", "Explore": "We want to _____ the city.", "Foggy": "It was a _____ morning.", "Crowded": "The beach was very _____.", "Sunbathe": "We like to _____ on the beach.", "Decade": "A period of ten years is a _____.", "Feature article": "I read a _____ about travel.", "Agency": "We booked the trip through a travel _____.", "Advertising agency": "She works for an _____.", "Immediately": "Please call me _____.", "Secretary": "I spoke to the office _____.", "Attack": "The soldiers decided to _____ the enemy.", "Opportunity": "This job is a good _____.", "Botanical garden": "We visited the _____ on Sunday.", "Escape": "The prisoner tried to _____.", "Semester": "I have three classes this _____.", "Nature reserve": "We visited a _____ at the weekend.", "Frighten": "The loud noise may _____ the child.", "Remind": "Please _____ me tomorrow.", "Fall in love": "They _____ and got married later.", "Break up": "They decided to _____ last month.", "Sign": "Please _____ here.", "Stork": "We saw a white _____ near the river.", "Elegant": "She wore an _____ dress.", "Close-up shot": "The photographer took a _____ of her face.", "Far away": "There is a small town _____.", "Cathedral": "We visited the city’s main _____.", "Enormous": "They live in an _____ house.", "Suddenly": "_____, the lights went out.", "Awful": "The food was _____.", "In a hurry": "I can’t talk now. I’m _____.", "Approximately": "There were _____ 100 people there.", "Injury": "He had a leg _____.", "Intensive": "It was an _____ course.", "Care": "The patient needs medical _____.", "Intensive care": "He is in _____.", "Dripping": "His clothes were _____.", "Brake": "Press the _____ to stop the car.", "Hit (by car)": "He was _____ by a car.", "Kill": "The accident could _____ someone.", "Accident": "There was a car _____.", "Surrounding": "We walked around the _____ area.", "Memory": "I have a happy _____ of my childhood.", "Advantage": "One big _____ is the low price.", "Patiently": "Please wait _____.", "Local market": "We bought fruit at the _____.", "Enthusiastic": "The students were _____ about the trip.", "Similarity": "There is a clear _____ between them.", "Architecture": "I love the city’s beautiful _____.", "Arrival": "We waited for their _____.", "Baggage check-in": "We went to _____ first.", "Baggage claim": "We waited at _____.", "Cart": "We used a _____ for our bags.", "Departure": "The time of our _____ is 8:00.", "Customs": "We went through _____ at the airport.", "Gate": "Our plane leaves from _____.", "Passport control": "We waited at _____.", "Security check": "You must go through _____.", "Terminal": "Our flight leaves from Terminal _____.", "Jet lag": "I had bad _____ after the flight.", "Guarantee": "The hotel can _____ a clean room.", "Layover": "We had a two-hour _____.", "Guided tour": "We went on a _____.", "Depressing": "It was a very _____ movie.", "Connecting flight": "We waited for our _____.", "Lounge": "We waited in the airport _____.", "Frustrating": "The long delay was _____.", "Countryside": "We spent the weekend in the _____.", "Expand": "The company wants to _____ its business.", "Duty free": "She bought perfume at the _____ shop.", "Immediate": "We need an _____ answer.", "Historic site": "We visited a famous _____.", "Forecast": "The weather _____ says it will rain.", "Include": "The price _____ breakfast.", "Destination": "Paris was our final _____.", "Pleasure": "It was a _____ to meet you.", "Boarding pass": "Please show your _____.", "Calculate": "Please _____ the total.", "Organized": "She is very _____ and plans everything well.", "Disorganized": "His desk is very _____.", "Pack": "I need to _____ my bag.", "Wardrobe": "My clothes are in the _____.", "Recommend": "Can you _____ a good restaurant?", "Appointment": "I have a doctor’s _____ tomorrow.", "Aspects": "We discussed the main _____ of the problem.", "Spontaneous": "It was a _____ decision.", "Angle": "Take the photo from a different _____.", "Terrified": "The child was _____.", "Look forward to": "I _____ seeing you again.", "Congratulations": "“_____ on your new job!”", "Extremely": "I was _____ tired after the trip.", "Adapt": "We must _____ to the new situation.", "Tolerant": "She is very _____ of other people.", "Individual": "Each _____ has a different opinion.", "Depend on": "It may _____ the weather.", "Believe in": "You should _____ yourself.", "Arrangement": "We made travel _____ before the trip.", "Attachment": "I sent the file as an email _____.", "Colleague": "My _____ helped me at work.", "Same old": "It was the _____ story again.", "Switch off": "Please _____ the light.", "Measure": "We need to _____ the table.", "Aim": "Our main _____ is to improve.", "Contestant": "Each _____ answered the question.", "Prize": "She won first _____.", "Including": "The price is $50, _____ breakfast.", "Host": "The TV _____ welcomed the guests.", "Definition": "The teacher gave a simple _____.", "Mime": "Can you _____ the word without speaking?", "Translation": "I need an English _____.", "Preceding": "Read the _____ page first.", "Bit": "I only need a little _____.", "Paraphrase": "Please _____ the sentence in your own words.", "Appetizer": "We ordered an _____ before dinner.", "Main course": "I chose fish for my _____.", "Bill": "Could we have the _____, please?", "Apologize": "You should _____ to her.", "Brilliant": "That was a _____ idea.", "Pick up": "I will _____ you up at eight.", "Drop off": "I will _____ you off at school.", "I am sorry": "“_____ I’m late.”"};
+
+  function escapeRegExp(s){return String(s).replace(/[.*+?^${}()|[\]\\]/g,'\\$&');}
+  function makeSentence(item){
+    const word=item[0]||'';
+    if(contexts[word]) return contexts[word];
+    let ex=item[5]||'';
+    const variants=[word, word.replace(/^I am /i,"I'm "), word.replace(/^I'm /i,"I am ")];
+    for(const v of variants){
+      if(new RegExp(escapeRegExp(v),'i').test(ex)) return ex.replace(new RegExp(escapeRegExp(v),'i'),'_____');
+    }
+    const def=(item[4]||'').replace(/^to\s+/i,'').replace(/[.;]+$/,'');
+    return `A simple example of this word is: _____ (${def}).`;
+  }
+  function distractors(arr,item){
+    // Prefer different, clearly unrelated words; never use the target itself.
+    const pool=arr.map(x=>x[0]).filter(x=>x!==item[0]);
+    const result=[];
+    while(pool.length && result.length<3){
+      const i=Math.floor(Math.random()*pool.length);
+      const cand=pool.splice(i,1)[0];
+      if(!result.some(x=>x.toLowerCase()===cand.toLowerCase())) result.push(cand);
+    }
+    return result;
+  }
+  ['A','B','C','R'].forEach(p=>{
+    const arr=data['vocab'+p]||[];
+    out[p+'Questions']=arr.map(item=>{
+      const opts=[item[0],...distractors(arr,item)];
+      return [makeSentence(item),opts,0];
+    });
+  });
+  return out;
+}
+Object.assign(U2,makeGeneratedQuestions(U2));
+Object.assign(U3,makeGeneratedQuestions(U3));
+const UNITS = {1:U1,2:U2,3:U3};
+
+/* =====================================================
+   GLOBAL SEARCH INDEX
+===================================================== */
+const searchIndex = [];
+function buildIndex(){
+  Object.keys(UNITS).forEach(key=>{
+    const id = Number(key);
+    const data = UNITS[id];
+    ['A','B','C','R'].forEach(p=>{
+      const arr = data['vocab'+p];
+      if(!arr) return;
+      arr.forEach((item, idx)=>{
+        const word = item[0]||'';
+        const pos = item[1]||'';
+        const syn = item[2]||'';
+        const ant = item[3]||'';
+        const def = item[4]||'';
+        const ex  = item[5]||'';
+        const phonetic = item[6]||'';
+        const fa = item[7]||'';
+        searchIndex.push({
+          unit: id, part: p, index: idx,
+          word, pos, syn, ant, def, ex, fa, phonetic,
+          searchText: (word+' '+syn+' '+ant+' '+def+' '+fa+' '+ex).toLowerCase()
+        });
+      });
+    });
+  });
+}
+buildIndex();
+
+/* =====================================================
+   GLOBAL SEARCH — behavior
+   Works with input/change/paste events so it runs the
+   same way on Chrome, Safari, Firefox, and mobile
+   keyboards (including IME/autocomplete flows).
+===================================================== */
+function renderSearchResults(rawQuery){
+  const resultsEl = document.getElementById('searchResults');
+  if(!resultsEl) return;
+  const q = String(rawQuery||'').trim().toLowerCase();
+
+  if(!q){
+    resultsEl.classList.remove('show');
+    resultsEl.innerHTML = '';
+    return;
+  }
+
+  const matches = searchIndex.filter(item=>item.searchText.indexOf(q) !== -1).slice(0,40);
+
+  if(!matches.length){
+    resultsEl.innerHTML = '<div class="no-results">No results for "'+escText(rawQuery)+'"</div>';
+    resultsEl.classList.add('show');
+    return;
+  }
+
+  resultsEl.innerHTML = matches.map((m,i)=>{
+    const metaBits = [];
+    if(m.pos) metaBits.push(m.pos);
+    if(m.fa) metaBits.push(m.fa);
+    const meta = metaBits.join(' • ');
+    return '<div class="result-item" data-idx="'+i+'" role="button" tabindex="0">'
+      + '<div>'
+      +   '<div class="result-word">'+escText(m.word)+'</div>'
+      +   (meta ? '<div class="result-meta">'+escText(meta)+'</div>' : '')
+      + '</div>'
+      + '<div class="result-badge badge-u'+m.unit+'">Unit '+m.unit+'</div>'
+      + '</div>';
+  }).join('');
+
+  resultsEl.classList.add('show');
+
+  Array.prototype.forEach.call(resultsEl.querySelectorAll('.result-item'), function(el){
+    const go = function(){
+      const m = matches[Number(el.getAttribute('data-idx'))];
+      if(m) goToSearchResult(m.unit, m.part, m.index);
+    };
+
+    /* Distinguish a real tap from a finger scrolling past the item.
+       We only act on touchend if the finger barely moved and lifted
+       quickly — otherwise it was a scroll gesture, not a selection. */
+    let touchStartX = 0, touchStartY = 0, touchStartTime = 0, touchMoved = false;
+    el.addEventListener('touchstart', function(e){
+      const t = e.changedTouches[0];
+      touchStartX = t.clientX; touchStartY = t.clientY;
+      touchStartTime = Date.now();
+      touchMoved = false;
+    }, {passive:true});
+    el.addEventListener('touchmove', function(e){
+      const t = e.changedTouches[0];
+      const dx = Math.abs(t.clientX - touchStartX);
+      const dy = Math.abs(t.clientY - touchStartY);
+      if(dx > 10 || dy > 10) touchMoved = true;
+    }, {passive:true});
+    el.addEventListener('touchend', function(e){
+      const elapsed = Date.now() - touchStartTime;
+      if(touchMoved || elapsed > 600) return; /* was a scroll/long-press, not a tap */
+      e.preventDefault();
+      go();
+    }, {passive:false});
+
+    /* Click covers mouse/trackpad and is already scroll-safe on modern
+       mobile browsers, so it stays as the primary handler. */
+    el.addEventListener('click', go);
+    el.addEventListener('keydown', function(e){
+      if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); go(); }
+    });
+  });
+}
+
+function goToSearchResult(unit, part, index){
+  const input = document.getElementById('searchInput');
+  const resultsEl = document.getElementById('searchResults');
+  if(input) input.value = '';
+  if(resultsEl){ resultsEl.classList.remove('show'); resultsEl.innerHTML=''; }
+  if(input) input.blur();
+  openUnit(unit, part, index);
+}
+
+function initSearchBar(){
+  const input = document.getElementById('searchInput');
+  const resultsEl = document.getElementById('searchResults');
+  const icon = document.querySelector('.search-icons');
+  if(!input) return;
+
+  const run = function(){ renderSearchResults(input.value); };
+
+  /* 'input' covers typing, paste, cut, autocomplete and mobile-keyboard
+     suggestion taps on every modern browser. */
+  input.addEventListener('input', run);
+  input.addEventListener('search', run);
+  input.addEventListener('focus', function(){ if(input.value.trim()) run(); });
+
+  input.addEventListener('keydown', function(e){
+    if(e.key === 'Enter'){
+      e.preventDefault();
+      const first = resultsEl ? resultsEl.querySelector('.result-item') : null;
+      if(first) first.click();
+    } else if(e.key === 'Escape'){
+      input.value = '';
+      if(resultsEl){ resultsEl.classList.remove('show'); resultsEl.innerHTML=''; }
+      input.blur();
+    }
+  });
+
+  if(icon){
+    icon.style.cursor = 'pointer';
+    icon.addEventListener('click', function(){ input.focus(); run(); });
+  }
+
+  /* Close the dropdown when tapping/clicking anywhere outside it. */
+  document.addEventListener('click', function(e){
+    if(!resultsEl) return;
+    const box = document.querySelector('.search-box');
+    if((box && box.contains(e.target)) || resultsEl.contains(e.target)) return;
+    resultsEl.classList.remove('show');
+  });
+}
+document.addEventListener('DOMContentLoaded', initSearchBar);
+/* In case DOMContentLoaded already fired by the time this script runs
+   (rare, but safe to guard against on slower mobile browsers). */
+if(document.readyState === 'interactive' || document.readyState === 'complete'){
+  initSearchBar();
+}
+
+/* =====================================================
+   STATE & NAVIGATION
+===================================================== */
+let currentUnit = null;
+let state = {};
+
+function goHome(){
+  const home = document.getElementById('homeView');
+  const unit = document.getElementById('unitView');
+  home.style.setProperty('display','flex','important');
+  unit.classList.remove('active');
+  unit.style.setProperty('display','none','important');
+  document.getElementById('searchInput').value = '';
+  document.getElementById('searchResults').classList.remove('show');
+  document.getElementById('searchResults').innerHTML = '';
+  window.scrollTo(0,0);
+}
+
+function openUnit(num, part, cardIdx){
+  currentUnit = num;
+  const home = document.getElementById('homeView');
+  const uv = document.getElementById('unitView');
+  home.style.setProperty('display','none','important');
+  uv.style.setProperty('display','block','important');
+  uv.classList.add('active');
+  document.getElementById('unitTitle').textContent = 'AEF 2A — Unit ' + num;
+  renderUnit(num, part, cardIdx);
+  window.scrollTo(0,0);
+}
+
+/* =====================================================
+   RENDER UNIT
+===================================================== */
+function renderUnit(num, jumpPart, jumpCard){
+  const data = UNITS[num] || {};
+  const tabs = document.getElementById('mainTabs');
+  const container = document.getElementById('sectionsContainer');
+  tabs.innerHTML = '';
+  container.innerHTML = '';
+  state = { card:{}, vq:{}, answers:{} };
+
+  const hasVocab = !!(data.vocabA && data.vocabA.length);
+  const parts = hasVocab ? ['A','B','C','R'] : [];
+
+  if(!hasVocab){
+    const note = document.createElement('div');
+    note.className = 'empty-unit';
+    note.style.margin = '24px auto 30px';
+    note.innerHTML = `<div class="empty-icon">🚧</div>
+      <h3>Coming Soon</h3>
+      <p>Official content for this unit isn't ready yet — add your own words in <strong>My Words</strong> below in the meantime.</p>`;
+    container.appendChild(note);
+  }
+
+  parts.forEach((p,i)=>{
+    const btn = document.createElement('button');
+    btn.className = 'main-tab ' + p.toLowerCase() + (i===0?' active':'');
+    btn.textContent = p==='R' ? 'Practical English' : ({A:'A',B:'B',C:'C'}[p]||p); btn.title = p==='R' ? 'Practical English' : 'Part '+p; btn.dataset.part=p;
+    btn.onclick = function(){ openSection(p, this); };
+    tabs.appendChild(btn);
+
+    const sec = document.createElement('section');
+    sec.id = 'section'+p;
+    sec.className = 'section section-'+p.toLowerCase() + (i===0?' active':'');
+
+    const titleText = p==='R' ? 'Practical English' : 'Part '+p;
+    sec.innerHTML = `<div class="section-title">${titleText}</div>`;
+
+    let subtabs = `<div class="subtabs">
+      <button class="subtab active" onclick="openSub('${p}','vocab',this)">Vocabulary</button>
+      <button class="subtab" onclick="openSub('${p}','vq',this)">Vocabulary Questions</button>
+    </div>`;
+
+    let html = subtabs;
+    html += `
+    <div id="${p}-vocab" class="subcontent active">
+      <div class="counter" id="${p}-vocab-counter"></div>
+      <div class="card-area">
+        <div class="flashcard" onclick="flipCard(this)">
+          <div class="card-inner">
+            <div class="card-face front">
+              <h2 id="${p}-word"></h2>
+              <div class="phonetic" id="${p}-phonetic"></div>
+              <p>Click the card to flip</p>
+              <button class="front-speak" onclick="event.stopPropagation();speakWord('${p}')">🔊</button>
+            </div>
+            <div class="card-face back">
+              <div class="info-grid">
+                <div class="info-box" id="${p}-pos-box"><div class="info-text"><span class="info-label">Part of Speech</span><span id="${p}-pos"></span></div></div>
+                <div class="info-box" id="${p}-syn-box"><div class="info-text"><span class="info-label">Synonym</span><span id="${p}-syn"></span></div><button class="speak" onclick="event.stopPropagation();speakText(document.getElementById('${p}-syn').innerText)">🔊</button></div>
+                <div class="info-box" id="${p}-ant-box"><div class="info-text"><span class="info-label">Opposite</span><span id="${p}-ant"></span></div><button class="speak" onclick="event.stopPropagation();speakText(document.getElementById('${p}-ant').innerText)">🔊</button></div>
+                <div class="info-box" id="${p}-def-box"><div class="info-text"><span class="info-label">Definition</span><span id="${p}-def"></span></div><button class="speak" onclick="event.stopPropagation();speakText(document.getElementById('${p}-def').innerText)">🔊</button></div>
+                <div class="info-box" id="${p}-ex-box"><div class="info-text"><span class="info-label">Example</span><span id="${p}-ex"></span></div><button class="speak" onclick="event.stopPropagation();speakText(document.getElementById('${p}-ex').innerText)">🔊</button></div>
+                <div class="info-box" id="${p}-fa-box"><div class="persian" id="${p}-fa"></div></div>
+              </div>
+              <div class="my-word-actions">
+                <button class="btn edit-card-btn" onclick="event.stopPropagation();openEditBuiltInCard('${p}', state.card['${p}']||0)">✏️ Edit</button>
+                <button class="btn r-btn" id="${p}-repeat-btn" onclick="event.stopPropagation();toggleVocabRepeat('${p}', state.card['${p}']||0)">🔁 Needs Repeat</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="controls">
+        <button class="btn ${p.toLowerCase()}-btn" onclick="prevCard('${p}')">Previous</button>
+        <button class="btn ${p.toLowerCase()}-btn" onclick="nextCard('${p}')">Next</button>
+      </div>
+    </div>`;
+
+    html += `
+    <div id="${p}-vq" class="subcontent">
+      <div class="counter" id="${p}-vq-counter"></div>
+      <div class="question-box">
+        <div class="question-number" id="${p}-vq-num"></div>
+        <div class="question-text" id="${p}-vq-text"></div>
+        <div class="options" id="${p}-vq-options"></div>
+        <div class="feedback" id="${p}-vq-feedback"></div>
+        <div class="controls">
+          <button class="btn ${p.toLowerCase()}-btn" onclick="checkQuestion('${p}')">Check Answer</button>
+          <button class="btn ${p.toLowerCase()}-btn" onclick="prevQuestion('${p}')">Previous</button>
+          <button class="btn ${p.toLowerCase()}-btn" onclick="nextQuestion('${p}')">Next</button>
+        </div>
+        <div class="summary" id="${p}-vq-summary"></div>
+      </div>
+    </div>`;
+
+    sec.innerHTML += html;
+    container.appendChild(sec);
+
+    state.card[p] = 0;
+    state.vq[p] = 0;
+    state.answers[p] = {};
+  });
+
+  parts.forEach(p=>{
+    renderCard(p);
+    if(data[p+'Questions']) renderQuestion(p);
+  });
+
+  /* Jump to a specific part/card (used by global search) */
+  if(jumpPart && parts.indexOf(jumpPart) !== -1){
+    if(typeof jumpCard === 'number' && jumpCard >= 0){
+      state.card[jumpPart] = jumpCard;
+    }
+    const jumpBtn = tabs.querySelector('.main-tab[data-part="'+jumpPart+'"]');
+    if(jumpBtn) openSection(jumpPart, jumpBtn);
+    const jumpSec = document.getElementById('section'+jumpPart);
+    if(jumpSec){
+      const vocabTabBtn = jumpSec.querySelector('.subtab');
+      if(vocabTabBtn) openSub(jumpPart, 'vocab', vocabTabBtn);
+    }
+    renderCard(jumpPart);
+  }
+
+  /* ---- "My Words" tab: always available, even for Coming Soon units ---- */
+  const mIsFirst = parts.length === 0;
+  const mBtn = document.createElement('button');
+  mBtn.className = 'main-tab m' + (mIsFirst ? ' active' : '');
+  mBtn.textContent = '📝 My Words';
+  mBtn.onclick = function(){ openSection('M', this); };
+  tabs.appendChild(mBtn);
+
+  const mSec = document.createElement('section');
+  mSec.id = 'sectionM';
+  mSec.className = 'section section-m' + (mIsFirst ? ' active' : '');
+  mSec.innerHTML = `
+    <div class="section-title">📝 My Words</div>
+    <div class="add-card-head">
+      <button class="add-card-fab" onclick="openCustomWordModal()" title="Add flashcard">+</button>
+      <span>New flashcard</span>
+    </div>
+    <div class="counter" id="M-counter"></div>
+    <div class="card-area" id="M-card-area"></div>
+    <div class="controls" id="M-controls"></div>`;
+  container.appendChild(mSec);
+
+  myWordsIndex = 0;
+  renderMyWords();
+  renderWordList();
+
+  /* ---- "Repeat" folder: aggregates flagged words from every part
+         (A/B/C/R vocabulary AND My Words) into one review deck ---- */
+  const repBtn = document.createElement('button');
+  repBtn.className = 'main-tab rep';
+  repBtn.textContent = '🔁 Repeat';
+  repBtn.onclick = function(){ openSection('REPEAT', this); };
+  tabs.appendChild(repBtn);
+
+  const repSec = document.createElement('section');
+  repSec.id = 'sectionREPEAT';
+  repSec.className = 'section section-rep';
+  repSec.innerHTML = `
+    <div class="section-title">🔁 Repeat Folder</div>
+    <p class="repeat-hint">Tap "🔁 Needs Repeat" on any flashcard in this unit to send it here for review. Marking a word "Learned" here only removes it from this folder — the original flashcard stays exactly where it was.</p>
+    <div class="counter" id="REPEAT-counter"></div>
+    <div class="card-area" id="REPEAT-card-area"></div>
+    <div class="controls" id="REPEAT-controls"></div>`;
+  container.appendChild(repSec);
+
+  repeatIndex = 0;
+  renderRepeatFolder();
+
+/* ---- Word List: fast printable/PDF-style vocabulary sheet ---- */
+  const wlBtn = document.createElement('button');
+  wlBtn.className = 'main-tab wordlist-tab';
+  wlBtn.textContent = 'Word List';
+  wlBtn.onclick = function(){ openSection('WORDLIST', this); renderWordList(); };
+  tabs.appendChild(wlBtn);
+
+  const wlSec = document.createElement('section');
+  wlSec.id = 'sectionWORDLIST';
+  wlSec.className = 'section section-wordlist';
+  wlSec.innerHTML = `
+    <div class="wordlist-head">
+      <div>
+        <h2>Word List</h2>
+        <p>Unit ${num} · Vocabulary + My Words</p>
+      </div>
+      </div>
+    <div class="wordlist-wrap">
+      <div class="wordlist-toolbar">
+        <button onclick="changeWordListZoom(-1)" aria-label="Smaller text">A−</button>
+        <span class="zoom-value" id="wordlistZoomValue">10 px</span>
+        <button onclick="changeWordListZoom(1)" aria-label="Larger text">A+</button>
+        <button onclick="printWordList()" aria-label="Print Word List" title="Print Word List">🖨️ Print</button>
+<button type="button" onclick="printWordList()">Save as PDF</button>
+      </div>
+      <div class="wordlist-scroll">
+        <table id="wordlistTable" class="wordlist-table" aria-label="Vocabulary word list"></table>
+      </div>
+    </div>`;
+  container.appendChild(wlSec);
+  renderWordList();
+
+  }
+
+/* =====================================================
+   FLASHCARDS
+===================================================== */
+function flipCard(card){ card.classList.toggle('flipped'); }
+
+function setInfoBox(part, field, value){
+  const box = document.getElementById(part+'-'+field+'-box');
+  const element = document.getElementById(part+'-'+field);
+  if(!box || !element) return;
+  if(value && value.trim()!=='' && value!=='—'){
+    element.innerText = value;
+    box.style.display = 'flex';
+  } else {
+    element.innerText = '';
+    box.style.display = 'none';
+  }
+}
+
+function getData(){
+  return UNITS[currentUnit] || {};
+}
+
+function renderCard(part){
+  const data = getData();
+  const arr = data['vocab'+part];
+  if(!arr || !arr.length) return;
+  const idx = state.card[part] || 0;
+  const item = getVocabItem(part,idx);
+  document.getElementById(part+'-word').innerText = item[0]||'';
+  const phonEl = document.getElementById(part+'-phonetic');
+  if(phonEl) phonEl.innerText = item[6]||'';
+  setInfoBox(part,'pos', item[1]||'');
+  setInfoBox(part,'syn', item[2]||'');
+  setInfoBox(part,'ant', item[3]||'');
+  setInfoBox(part,'def', item[4]||'');
+  setInfoBox(part,'ex',  item[5]||'');
+  setInfoBox(part,'fa',  item[7]||'');
+  const counter = document.getElementById(part+'-vocab-counter');
+  if(counter) counter.innerText = `Word ${idx+1} of ${arr.length}`;
+  const card = document.querySelector(`#section${part} .flashcard`);
+  if(card) card.classList.remove('flipped');
+  updateVocabRepeatButton(part, idx);
+}
+
+function nextCard(part){
+  const data = getData();
+  const arr = data['vocab'+part];
+  if(!arr) return;
+  state.card[part] = ((state.card[part]||0)+1) % arr.length;
+  renderCard(part);
+}
+function prevCard(part){
+  const data = getData();
+  const arr = data['vocab'+part];
+  if(!arr) return;
+  state.card[part] = ((state.card[part]||0)-1 + arr.length) % arr.length;
+  renderCard(part);
+}
+
+/* =====================================================
+   SPEECH
+===================================================== */
+function speakWord(part){
+  const word = document.getElementById(part+'-word').innerText;
+  speakText(word);
+}
+function speakText(text, lang='en-US'){
+  try{
+    if(!('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(String(text||''));
+    u.lang = lang || 'en-US';
+    u.rate = 0.9;
+    window.speechSynthesis.speak(u);
+  }catch(e){ /* Speech is optional; the app remains usable without it. */ }
+}
+
+/* =====================================================
+   QUESTIONS (Vocabulary Questions — options shuffled every render)
+===================================================== */
+function getQuestions(part){
+  const data = getData();
+  return data[part+'Questions'] || [];
+}
+
+function renderQuestion(part){
+  const arr = getQuestions(part);
+  if(!arr.length) return;
+  const i = state.vq[part] || 0;
+  const q = arr[i];
+  document.getElementById(part+'-vq-counter').innerText = `Question ${i+1} of ${arr.length}`;
+  document.getElementById(part+'-vq-num').innerText = `Question ${i+1}`;
+  document.getElementById(part+'-vq-text').innerText = q[0];
+  const box = document.getElementById(part+'-vq-options');
+  box.innerHTML = '';
+
+  // Shuffle options so the correct answer is never in a predictable position
+  const options = q[1].map((text,index)=>({text, originalIndex:index}));
+  for(let k=options.length-1;k>0;k--){
+    const j = Math.floor(Math.random()*(k+1));
+    [options[k],options[j]] = [options[j],options[k]];
+  }
+  options.forEach((opt,index)=>{
+    const b = document.createElement('button');
+    b.className = 'option';
+    b.innerText = String.fromCharCode(65+index)+') '+opt.text;
+    b.dataset.originalIndex = opt.originalIndex;
+    b.onclick = ()=>selectOption(part,opt.originalIndex,b);
+    box.appendChild(b);
+  });
+
+  const fb = document.getElementById(part+'-vq-feedback');
+  fb.className = 'feedback';
+  fb.innerHTML = '';
+  if(state.answers[part] && state.answers[part][i] !== undefined){
+    showResult(part, state.answers[part][i]);
+  }
+}
+
+function selectOption(part, index, button){
+  if(!state.answers[part]) state.answers[part] = {};
+  state.answers[part][state.vq[part]||0] = index;
+  document.querySelectorAll('#'+part+'-vq .option').forEach(x=>{
+    x.classList.remove('selected','correct','wrong');
+  });
+  button.classList.add('selected');
+}
+
+function checkQuestion(part){
+  const i = state.vq[part]||0;
+  const selected = state.answers[part] ? state.answers[part][i] : undefined;
+  if(selected === undefined){ alert('Please choose an answer first.'); return; }
+  showResult(part, selected);
+}
+
+function showResult(part, selected){
+  const arr = getQuestions(part);
+  const i = state.vq[part]||0;
+  const q = arr[i];
+  const correct = q[2];
+  const fb = document.getElementById(part+'-vq-feedback');
+  const opts = document.querySelectorAll('#'+part+'-vq .option');
+  opts.forEach(x=>{
+    x.classList.remove('correct','wrong');
+    const originalIndex = Number(x.dataset.originalIndex);
+    if(originalIndex === correct) x.classList.add('correct');
+    if(originalIndex === selected && selected !== correct) x.classList.add('wrong');
+  });
+  fb.className = 'feedback show';
+  if(selected === correct){
+    fb.classList.add('good');
+    fb.innerHTML = '✓ Correct!';
+  } else {
+    fb.classList.add('bad');
+    fb.innerHTML = `✗ Incorrect. Correct answer: <strong>${q[1][correct]}</strong>`;
+  }
+}
+
+function nextQuestion(part){
+  const arr = getQuestions(part);
+  if((state.vq[part]||0) < arr.length-1){
+    state.vq[part] = (state.vq[part]||0)+1;
+    renderQuestion(part);
+  } else {
+    showSummary(part);
+  }
+}
+function prevQuestion(part){
+  if((state.vq[part]||0) > 0){
+    state.vq[part]--;
+    renderQuestion(part);
+  }
+}
+
+function showSummary(part){
+  const arr = getQuestions(part);
+  let correct = 0;
+  let errors = [];
+  arr.forEach((q,i)=>{
+    const answer = state.answers[part] ? state.answers[part][i] : undefined;
+    if(answer === q[2]) correct++;
+    else errors.push({
+      n:i+1, question:q[0],
+      your: answer===undefined ? 'No answer' : q[1][answer],
+      right: q[1][q[2]]
+    });
+  });
+  const score = (correct/arr.length*20).toFixed(1);
+  const sum = document.getElementById(part+'-vq-summary');
+  let html = `<div class="score">${score} / 20</div>
+    <p style="text-align:center">You got <strong>${correct}</strong> out of <strong>${arr.length}</strong> correct.</p>`;
+  if(errors.length){
+    html += `<h3>Review your mistakes</h3>`;
+    errors.forEach(e=>{
+      html += `<div class="error-item"><strong>Question ${e.n}</strong><br>${e.question}<br><br>
+        Your answer: <strong>${e.your}</strong><br>Correct answer: <strong>${e.right}</strong></div>`;
+    });
+  } else {
+    html += `<p style="text-align:center">Excellent! You answered all questions correctly.</p>`;
+  }
+  sum.innerHTML = html;
+  sum.classList.add('show');
+}
+
+
+/* Flashcard editing */
+let editContext=null;
+function loadEdits(){try{return JSON.parse(localStorage.getItem('aef2a_edits_u'+currentUnit)||'{}')}catch(e){return {}}}
+function saveEdits(x){try{localStorage.setItem('aef2a_edits_u'+currentUnit,JSON.stringify(x))}catch(e){}}
+function getVocabItem(part,idx){
+  const arr=(getData()['vocab'+part]||[]), base=arr[idx]; if(!base)return null;
+  const ed=loadEdits()[part+':'+idx]; return ed?[ed.word,ed.pos,ed.syn,ed.ant,ed.def,ed.example,ed.phonetic,ed.meaning]:base;
+}
+function fillEditForm(x){
+  ['editWordInput','editPosInput','editSynInput','editAntInput','editDefInput','editExampleInput','editPhoneticInput','editMeaningInput']
+  .forEach((id,i)=>document.getElementById(id).value=x[i]||'');
+}
+function openEditBuiltInCard(part,idx){const x=getVocabItem(part,idx);if(!x)return;editContext={type:'builtIn',part,idx};fillEditForm(x);document.getElementById('editCardModal').classList.add('show')}
+function openEditCustomCard(id){const w=loadCustomWords().find(x=>x.id===id);if(!w)return;editContext={type:'custom',id};fillEditForm([w.word,w.pos,w.syn,w.ant,w.definition,w.example,w.phonetic,w.meaning]);document.getElementById('editCardModal').classList.add('show')}
+function closeEditCardModal(){document.getElementById('editCardModal').classList.remove('show');editContext=null}
+function saveEditedCard(){
+  if(!editContext)return;
+  const v={word:editWordInput.value.trim(),pos:editPosInput.value.trim(),syn:editSynInput.value.trim(),ant:editAntInput.value.trim(),def:editDefInput.value.trim(),example:editExampleInput.value.trim(),phonetic:editPhoneticInput.value.trim(),meaning:editMeaningInput.value.trim()};
+  if(!v.word){alert('Please type the English word first.');return}
+  if(editContext.type==='builtIn'){const e=loadEdits();e[editContext.part+':'+editContext.idx]=v;saveEdits(e);renderCard(editContext.part)}
+  else {const a=loadCustomWords(),w=a.find(x=>x.id===editContext.id);if(w){Object.assign(w,{word:v.word,pos:v.pos,syn:v.syn,ant:v.ant,definition:v.def,example:v.example,phonetic:v.phonetic,meaning:v.meaning});saveCustomWords(a);renderMyWords()}}
+  renderWordList();closeEditCardModal()
+}
+
+/* =====================================================
+   MY WORDS (custom, student-added flashcards)
+===================================================== */
+let myWordsIndex = 0;
+
+function loadCustomWords(){
+  try{ return JSON.parse(localStorage.getItem('aef2a_custom_u'+currentUnit) || '[]'); }
+  catch(err){ return []; }
+}
+function saveCustomWords(arr){
+  try{ localStorage.setItem('aef2a_custom_u'+currentUnit, JSON.stringify(arr)); }catch(err){}
+}
+function escText(str){
+  const d = document.createElement('div');
+  d.innerText = str==null ? '' : str;
+  return d.innerHTML;
+}
+
+function renderMyWords(){
+  const list = loadCustomWords();
+  const counter = document.getElementById('M-counter');
+  const cardArea = document.getElementById('M-card-area');
+  const controls = document.getElementById('M-controls');
+  if(!counter || !cardArea || !controls) return;
+
+  if(!list.length){
+    counter.innerText = '';
+    cardArea.innerHTML = `<div class="empty-unit" style="margin:16px auto"><div class="empty-icon">📝</div><h3>No words yet</h3><p>Add your first word using the form above.</p></div>`;
+    controls.innerHTML = '';
+    return;
+  }
+
+  if(myWordsIndex >= list.length) myWordsIndex = list.length-1;
+  if(myWordsIndex < 0) myWordsIndex = 0;
+  const w = list[myWordsIndex];
+
+  counter.innerText = `Word ${myWordsIndex+1} of ${list.length}`;
+  const safeWord = escText(w.word).replace(/'/g,"\\'");
+  const safeEx = escText(w.example).replace(/'/g,"\\'");
+  cardArea.innerHTML = `
+    <div class="flashcard" onclick="this.classList.toggle('flipped')">
+      <div class="card-inner">
+        <div class="card-face front">
+          <h2>${escText(w.word)}</h2>
+          <p>Click the card to flip</p>
+          <button class="front-speak" onclick="event.stopPropagation();speakText('${safeWord}')">🔊</button>
+        </div>
+        <div class="card-face back">
+          <div class="info-grid">
+            ${w.pos ? `<div class="info-box"><div class="info-text"><span class="info-label">Part of Speech</span><span>${escText(w.pos)}</span></div></div>` : ''}
+            ${w.syn ? `<div class="info-box"><div class="info-text"><span class="info-label">Synonym</span><span>${escText(w.syn)}</span></div></div>` : ''}
+            ${w.ant ? `<div class="info-box"><div class="info-text"><span class="info-label">Opposite</span><span>${escText(w.ant)}</span></div></div>` : ''}
+            <div class="info-box"><div class="info-text"><span class="info-label">Persian Meaning</span><span class="persian">${escText(w.meaning)||'—'}</span></div></div>
+            ${w.example ? `<div class="info-box"><div class="info-text"><span class="info-label">Example</span><span>${escText(w.example)}</span></div><button class="speak" onclick="event.stopPropagation();speakText('${safeEx}')">🔊</button></div>` : ''}
+          </div>
+          <div class="my-word-actions">
+            <button class="btn edit-card-btn" onclick="event.stopPropagation();openEditCustomCard('${w.id}')">✏️ Edit</button>
+            <button class="btn ${w.needsRepeat ? 'a-btn' : 'r-btn'}" onclick="event.stopPropagation();toggleCustomRepeat('${w.id}')">${w.needsRepeat ? '✅ In Repeat Folder' : '🔁 Needs Repeat'}</button>
+            <button class="btn" style="background:#fee2e2;color:#991b1b" onclick="event.stopPropagation();deleteCustomWord('${w.id}')">🗑 Delete</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  controls.innerHTML = `
+    <button class="btn m-btn" onclick="prevMyWord()">Previous</button>
+    <button class="btn m-btn" onclick="nextMyWord()">Next</button>`;
+}
+
+function prevMyWord(){
+  const list = loadCustomWords();
+  if(!list.length) return;
+  myWordsIndex = (myWordsIndex-1+list.length)%list.length;
+  renderMyWords();
+}
+function nextMyWord(){
+  const list = loadCustomWords();
+  if(!list.length) return;
+  myWordsIndex = (myWordsIndex+1)%list.length;
+  renderMyWords();
+}
+
+function openCustomWordModal(){
+  const m=document.getElementById('customWordModal'); if(m) m.classList.add('show');
+  const w=document.getElementById('newWordInput'); if(w) setTimeout(()=>w.focus(),50);
+}
+function closeCustomWordModal(){
+  const m=document.getElementById('customWordModal'); if(m) m.classList.remove('show');
+}
+function addCustomWord(){
+  const wordEl=document.getElementById('newWordInput');
+  const meaningEl=document.getElementById('newMeaningInput');
+  const exEl=document.getElementById('newExampleInput');
+  const posEl=document.getElementById('newPosInput');
+  const synEl=document.getElementById('newSynInput');
+  const antEl=document.getElementById('newAntInput');
+  const word=wordEl.value.trim(), meaning=meaningEl.value.trim(), example=exEl.value.trim();
+  if(!word){ alert('Please type the English word first.'); return; }
+  const arr=loadCustomWords();
+  arr.push({id:'w'+Date.now()+Math.random().toString(36).slice(2,7),word,meaning,example,
+    pos:posEl?posEl.value.trim():'',syn:synEl?synEl.value.trim():'',ant:antEl?antEl.value.trim():'',needsRepeat:false});
+  saveCustomWords(arr); myWordsIndex=arr.length-1; renderMyWords(); renderWordList();
+  [wordEl,meaningEl,exEl,posEl,synEl,antEl].forEach(x=>{if(x)x.value='';});
+  closeCustomWordModal();
+}
+function toggleCustomRepeat(id){
+  const arr = loadCustomWords();
+  const item = arr.find(w=>w.id===id);
+  if(item){ item.needsRepeat = !item.needsRepeat; saveCustomWords(arr); }
+  renderMyWords();
+  renderRepeatFolder();
+  renderWordList();
+}
+
+function deleteCustomWord(id){
+  if(!confirm('Delete this word? This removes it completely, including from the Repeat folder.')) return;
+  const arr = loadCustomWords().filter(w=>w.id!==id);
+  saveCustomWords(arr);
+  renderMyWords();
+  renderRepeatFolder();
+  renderWordList();
+}
+
+/* =====================================================
+   REPEAT FOLDER — aggregates every flagged word in the
+   current unit (built-in vocabulary from Parts A/B/C/R
+   AND custom "My Words" entries) into one review deck.
+   Removing a word here only clears the flag — the
+   original flashcard is never touched or deleted.
+===================================================== */
+let repeatIndex = 0;
+
+function loadVocabRepeat(){
+  try{ return JSON.parse(localStorage.getItem('aef2a_repeat_u'+currentUnit) || '[]'); }
+  catch(err){ return []; }
+}
+function saveVocabRepeat(arr){
+  try{ localStorage.setItem('aef2a_repeat_u'+currentUnit, JSON.stringify(arr)); }catch(err){}
+}
+function isVocabRepeat(part, idx){
+  return loadVocabRepeat().some(r=>r.part===part && r.index===idx);
+}
+
+function updateVocabRepeatButton(part, idx){
+  const btn = document.getElementById(part+'-repeat-btn');
+  if(!btn) return;
+  const flagged = isVocabRepeat(part, idx);
+  btn.textContent = flagged ? '✅ In Repeat Folder' : '🔁 Needs Repeat';
+  btn.className = 'btn ' + (flagged ? 'a-btn' : 'r-btn');
+}
+
+function toggleVocabRepeat(part, idx){
+  const arr = loadVocabRepeat();
+  const existing = arr.findIndex(r=>r.part===part && r.index===idx);
+  if(existing>=0) arr.splice(existing,1);
+  else arr.push({part, index:idx});
+  saveVocabRepeat(arr);
+  updateVocabRepeatButton(part, idx);
+  renderRepeatFolder();
+}
+
+function getRepeatItems(){
+  const data = getData();
+  const vocabItems = loadVocabRepeat().map(r=>{
+    const arr = data['vocab'+r.part];
+    if(!arr || !arr[r.index]) return null;
+    const item = getVocabItem(r.part,r.index);
+    return {
+      source:'vocab', part:r.part, index:r.index,
+      word:item[0]||'', pos:item[1]||'', syn:item[2]||'', ant:item[3]||'',
+      def:item[4]||'', ex:item[5]||'', phonetic:item[6]||'', fa:item[7]||''
+    };
+  }).filter(Boolean);
+
+  const customItems = loadCustomWords().filter(w=>w.needsRepeat).map(w=>({
+    source:'custom', id:w.id, word:w.word, meaning:w.meaning, example:w.example
+  }));
+
+  return [...vocabItems, ...customItems];
+}
+
+function renderRepeatFolder(){
+  const list = getRepeatItems();
+  const counter = document.getElementById('REPEAT-counter');
+  const cardArea = document.getElementById('REPEAT-card-area');
+  const controls = document.getElementById('REPEAT-controls');
+  if(!counter || !cardArea || !controls) return;
+
+  if(!list.length){
+    counter.innerText = '';
+    cardArea.innerHTML = `<div class="empty-unit" style="margin:16px auto"><div class="empty-icon">🎉</div><h3>Nothing to repeat</h3><p>Tap "🔁 Needs Repeat" on any flashcard in this unit to add it here.</p></div>`;
+    controls.innerHTML = '';
+    return;
+  }
+
+  if(repeatIndex >= list.length) repeatIndex = list.length-1;
+  if(repeatIndex < 0) repeatIndex = 0;
+  const w = list[repeatIndex];
+  const safeWord = escText(w.word).replace(/'/g,"\\'");
+
+  let backHtml;
+  if(w.source==='vocab'){
+    backHtml = `<div class="info-grid">
+      ${w.pos ? `<div class="info-box"><div class="info-text"><span class="info-label">Part of Speech</span><span>${escText(w.pos)}</span></div></div>` : ''}
+      ${w.syn ? `<div class="info-box"><div class="info-text"><span class="info-label">Synonym</span><span>${escText(w.syn)}</span></div></div>` : ''}
+      ${w.ant ? `<div class="info-box"><div class="info-text"><span class="info-label">Opposite</span><span>${escText(w.ant)}</span></div></div>` : ''}
+      ${w.def ? `<div class="info-box"><div class="info-text"><span class="info-label">Definition</span><span>${escText(w.def)}</span></div></div>` : ''}
+      ${w.ex ? `<div class="info-box"><div class="info-text"><span class="info-label">Example</span><span>${escText(w.ex)}</span></div></div>` : ''}
+      ${w.fa ? `<div class="info-box"><div class="persian">${escText(w.fa)}</div></div>` : ''}
+    </div>`;
+  } else {
+    backHtml = `<div class="info-grid">
+      <div class="info-box"><div class="info-text"><span class="info-label">Persian Meaning</span><span class="persian">${escText(w.meaning)||'—'}</span></div></div>
+      ${w.example ? `<div class="info-box"><div class="info-text"><span class="info-label">Example</span><span>${escText(w.example)}</span></div></div>` : ''}
+    </div>`;
+  }
+
+  counter.innerText = `Word ${repeatIndex+1} of ${list.length}`;
+  cardArea.innerHTML = `
+    <div class="flashcard" onclick="this.classList.toggle('flipped')">
+      <div class="card-inner">
+        <div class="card-face front">
+          <h2>${escText(w.word)}</h2>
+          ${w.phonetic ? `<div class="phonetic">${escText(w.phonetic)}</div>` : ''}
+          <p>Click the card to flip</p>
+          <button class="front-speak" onclick="event.stopPropagation();speakText('${safeWord}')">🔊</button>
+        </div>
+        <div class="card-face back">
+          ${backHtml}
+          <div class="my-word-actions">
+            <button class="btn a-btn" onclick="event.stopPropagation();removeFromRepeat(${repeatIndex})">✅ Learned — Remove from Repeat</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  controls.innerHTML = `
+    <button class="btn m-btn" onclick="prevRepeat()">Previous</button>
+    <button class="btn m-btn" onclick="nextRepeat()">Next</button>`;
+}
+
+function prevRepeat(){
+  const list = getRepeatItems();
+  if(!list.length) return;
+  repeatIndex = (repeatIndex-1+list.length)%list.length;
+  renderRepeatFolder();
+}
+function nextRepeat(){
+  const list = getRepeatItems();
+  if(!list.length) return;
+  repeatIndex = (repeatIndex+1)%list.length;
+  renderRepeatFolder();
+}
+
+function removeFromRepeat(idx){
+  const list = getRepeatItems();
+  const w = list[idx];
+  if(!w) return;
+  if(w.source==='vocab'){
+    const arr = loadVocabRepeat().filter(r=>!(r.part===w.part && r.index===w.index));
+    saveVocabRepeat(arr);
+    updateVocabRepeatButton(w.part, w.index);
+  } else {
+    const arr = loadCustomWords();
+    const item = arr.find(x=>x.id===w.id);
+    if(item){ item.needsRepeat = false; saveCustomWords(arr); }
+    renderMyWords();
+  }
+  renderRepeatFolder();
+}
+
+
+/* =====================================================
+   WORD LIST — compact printable/PDF-friendly table
+===================================================== */
+const WL_FONT_MIN=7, WL_FONT_MAX=24;
+let wordListZoom=(function(){
+  try{
+    const v=parseInt(localStorage.getItem('wordListFontSize')||'10',10);
+    return isFinite(v) ? Math.max(WL_FONT_MIN,Math.min(WL_FONT_MAX,v)) : 10;
+  }catch(err){ return 10; }
+})();
+function allWordListItems(){
+  const data=getData(), out=[];
+  ['A','B','C','R'].forEach(p=>{
+    const arr=data['vocab'+p]; if(!Array.isArray(arr)) return;
+    arr.forEach((item,i)=>{
+      const x=getVocabItem(p,i) || item;
+      out.push({
+        n:out.length+1,
+        word:x[0]||'',
+        syn:x[2]||'',
+        ant:x[3]||'',
+        def:x[4]||'',
+        fa:(x.length>7 ? (x[7]||'') : (x[6]||'')),
+        custom:false
+      });
+    });
+  });
+  loadCustomWords().forEach(item=>{
+    out.push({
+      n:out.length+1,
+      word:item.word||'',
+      syn:item.syn||'',
+      ant:item.ant||'',
+      def:item.definition||'',
+      fa:item.meaning||'',
+      custom:true
+    });
+  });
+  return out;
+}
+
+function openSection(id, btn){
+  document.querySelectorAll('#mainTabs .main-tab').forEach(x=>x.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  document.querySelectorAll('#sectionsContainer .section').forEach(x=>x.classList.remove('active'));
+  const sec=document.getElementById('section'+id);
+  if(sec) sec.classList.add('active');
+  window.scrollTo(0,0);
+}
+function openSub(part, name, btn){
+  const sec=document.getElementById('section'+part); if(!sec)return;
+  sec.querySelectorAll('.subtab').forEach(x=>x.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  sec.querySelectorAll('.subcontent').forEach(x=>x.classList.remove('active'));
+  const target=document.getElementById(part+'-'+name);
+  if(target)target.classList.add('active');
+}
+
+function posAbbr(pos){
+  const p=String(pos||'').trim();
+  if(!p || p==='—') return '';
+  const map={
+    'Noun':'n','noun':'n','Verb':'v','verb':'v','Adjective':'adj','adjective':'adj',
+    'Adverb':'adv','adverb':'adv','Preposition':'prep','preposition':'prep',
+    'Pronoun':'pron','pronoun':'pron','Conjunction':'conj','conjunction':'conj',
+    'Interjection':'interj','interjection':'interj','Phrase':'phr','phrase':'phr',
+    'Phrasal verb':'phr v','phrasal verb':'phr v','Abbreviation':'abbr','abbreviation':'abbr',
+    'Noun phrase':'n phr','noun phrase':'n phr','Verb phrase':'v phr','verb phrase':'v phr',
+    'Adjective phrase':'adj phr','adjective phrase':'adj phr','Adverb phrase':'adv phr','adverb phrase':'adv phr',
+    'Noun / Verb':'n/v','noun / verb':'n/v','Verb / Noun':'v/n','verb / noun':'v/n',
+    'Noun / Adjective':'n/adj','noun / adjective':'n/adj','Adjective / Noun':'adj/n','adjective / noun':'adj/n',
+    'Verb / Adjective':'v/adj','verb / adjective':'v/adj','Adjective / Verb':'adj/v','adjective / verb':'adj/v',
+    'Adjective / Adverb':'adj/adv','adjective / adverb':'adj/adv','Adverb / Adjective':'adv/adj','adverb / adjective':'adv/adj'
+  };
+  if(map[p]) return map[p];
+  return p.replace(/\bNoun\b/gi,'n').replace(/\bVerb\b/gi,'v').replace(/\bAdjective\b/gi,'adj').replace(/\bAdverb\b/gi,'adv').replace(/\bPhrase\b/gi,'phr');
+}
+
+function renderWordList(){
+  const t=document.getElementById('wordlistTable'); if(!t) return;
+  const z=wordListZoom;
+  t.style.fontSize=z+'px';
+  t.style.setProperty('--wl-font-size', z+'px');
+  const rows=allWordListItems();
+  t.innerHTML='<thead><tr><th>#</th><th>Word</th><th>Synonym</th><th>Meaning</th><th>Antonym</th><th>فارسی</th></tr></thead><tbody>'+
+    rows.map(x=>`<tr><td>${x.n}</td><td class="${x.custom?'custom-word-row':''}"><strong>${escText(x.word)}</strong></td><td>${escText(x.syn)}</td><td>${escText(x.def)}</td><td>${escText(x.ant)}</td><td class="fa">${escText(x.fa)}</td></tr>`).join('')+
+    '</tbody>';
+  const zv=document.getElementById('wordlistZoomValue'); if(zv)zv.textContent=z+' px';
+}
+
+function printWordList(){
+  const oldTitle=document.title;
+  document.title='AEF Word List · Unit '+currentUnit;
+  renderWordList();
+  setTimeout(()=>{
+    try{ window.focus(); window.print(); }
+    finally{ setTimeout(()=>{document.title=oldTitle;},500); }
+  },100);
+}
+
+function changeWordListZoom(delta){
+  wordListZoom=Math.max(WL_FONT_MIN,Math.min(WL_FONT_MAX,wordListZoom+delta));
+  try{ localStorage.setItem('wordListFontSize',String(wordListZoom)); }catch(err){}
+  renderWordList();
+}
+
+
+const PROFILE_KEY = 'aef2a_profile_photo';
+const BG_KEY = 'aef2a_background_photo';
+let photoMode = 'profile';
+let cropState = null;
+const memStore = {};   // fallback when the browser blocks localStorage (keeps the photo while the page is open)
+
+function storageAvailable(){
+  try{
+    const t = '__aef2a_test__';
+    localStorage.setItem(t, '1');
+    localStorage.removeItem(t);
+    return true;
+  }catch(err){
+    return false;
+  }
+}
+
+function applyBackground(dataUrl){
+  const bgLayer = document.getElementById('bgLayer');
+  const bgOverlay = document.getElementById('bgOverlay');
+  if(dataUrl){
+    bgLayer.style.backgroundImage = `url(${dataUrl})`;
+    bgOverlay.style.background = 'rgba(255,255,255,.45)';
+  } else {
+    bgLayer.style.backgroundImage = 'none';
+    bgOverlay.style.background = '#fff';
+  }
+}
+
+function safeGet(key){
+  try{ const v = localStorage.getItem(key); if(v !== null) return v; }catch(err){}
+  return Object.prototype.hasOwnProperty.call(memStore,key) ? memStore[key] : null;
+}
+
+function loadProfile(){
+  const savedProfile = safeGet(PROFILE_KEY);
+  if(savedProfile){
+    const fabImg = document.getElementById('profileFabImg');
+    fabImg.src = savedProfile;
+    fabImg.style.display = 'block';
+    document.getElementById('profileFabIcon').style.display = 'none';
+  }
+  const savedBg = safeGet(BG_KEY);
+  applyBackground(savedBg || null);
+}
+
+function resetCropUI(){
+  document.getElementById('chooseStep').style.display = 'block';
+  document.getElementById('cropStep').style.display = 'none';
+  document.getElementById('saveBtn').style.display = 'none';
+  document.getElementById('photoInput').value = '';
+  cropState = null;
+}
+
+function cancelCrop(){
+  resetCropUI();
+}
+
+function openProfileModal(){
+  document.getElementById('profileOverlay').classList.add('show');
+  const warning = document.getElementById('storageWarning');
+  warning.classList.toggle('show', !storageAvailable());
+  switchPhotoMode('profile');
+}
+
+function switchPhotoMode(mode){
+  photoMode = mode;
+  document.querySelectorAll('.mode-tab').forEach(b=>b.classList.remove('active'));
+  const activeTab = document.getElementById('modeTab-'+mode);
+  if(activeTab) activeTab.classList.add('active');
+
+  document.getElementById('modalTitle').textContent = mode==='profile' ? 'Profile Picture' : 'Background Image';
+  document.getElementById('modalSub').textContent = mode==='profile'
+    ? 'This photo appears as your profile icon in the top-right corner.'
+    : 'This photo is used as the background behind the whole app.';
+
+  document.getElementById('cropStage').classList.toggle('bg-mode', mode==='background');
+  document.getElementById('previewWrap').classList.toggle('bg-mode', mode==='background');
+
+  const status = document.getElementById('profileStatus');
+  status.textContent = '';
+  status.className = 'profile-status';
+  resetCropUI();
+  loadPreviewForMode();
+}
+
+function loadPreviewForMode(){
+  const key = photoMode==='profile' ? PROFILE_KEY : BG_KEY;
+  const saved = safeGet(key);
+  const img = document.getElementById('profilePreview');
+  const placeholder = document.getElementById('previewPlaceholder');
+  if(saved){
+    img.src = saved;
+    img.style.display = 'block';
+    placeholder.style.display = 'none';
+  } else {
+    img.src = '';
+    img.style.display = 'none';
+    placeholder.style.display = 'flex';
+  }
+}
+
+function closeProfileModal(){
+  document.getElementById('profileOverlay').classList.remove('show');
+}
+
+/* ---------- Crop tool ---------- */
+function handlePhotoSelect(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  const status = document.getElementById('profileStatus');
+  status.textContent = '';
+  status.className = 'profile-status';
+
+  const reader = new FileReader();
+  reader.onerror = function(){
+    status.textContent = "Couldn't read that file. Please try a different photo.";
+    status.className = 'profile-status err';
+  };
+  reader.onload = function(ev){
+    const img = new Image();
+    img.onerror = function(){
+      status.textContent = "That file doesn't look like a valid image.";
+      status.className = 'profile-status err';
+    };
+    img.onload = function(){ startCrop(img); };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function startCrop(img){
+  document.getElementById('chooseStep').style.display = 'none';
+  document.getElementById('cropStep').style.display = 'block';
+  document.getElementById('saveBtn').style.display = 'block';
+
+  const stage = document.getElementById('cropStage');
+  const stageSize = stage.clientWidth;
+  const minScale = Math.max(stageSize / img.naturalWidth, stageSize / img.naturalHeight);
+
+  cropState = {
+    img, stageSize,
+    scale: minScale, minScale,
+    x: (stageSize - img.naturalWidth*minScale)/2,
+    y: (stageSize - img.naturalHeight*minScale)/2,
+    dragging:false, startX:0, startY:0, startImgX:0, startImgY:0
+  };
+
+  document.getElementById('cropImg').src = img.src;
+  document.getElementById('zoomRange').value = 100;
+  renderCropTransform();
+}
+
+function renderCropTransform(){
+  if(!cropState) return;
+  const cropImg = document.getElementById('cropImg');
+  cropImg.style.width = (cropState.img.naturalWidth*cropState.scale)+'px';
+  cropImg.style.height = (cropState.img.naturalHeight*cropState.scale)+'px';
+  cropImg.style.transform = `translate(${cropState.x}px, ${cropState.y}px)`;
+}
+
+function clampCropPosition(){
+  const w = cropState.img.naturalWidth*cropState.scale;
+  const h = cropState.img.naturalHeight*cropState.scale;
+  const minX = cropState.stageSize - w;
+  const minY = cropState.stageSize - h;
+  cropState.x = Math.min(0, Math.max(minX, cropState.x));
+  cropState.y = Math.min(0, Math.max(minY, cropState.y));
+}
+
+function cropPointerDown(e){
+  if(!cropState) return;
+  cropState.dragging = true;
+  const p = e.touches ? e.touches[0] : e;
+  cropState.startX = p.clientX;
+  cropState.startY = p.clientY;
+  cropState.startImgX = cropState.x;
+  cropState.startImgY = cropState.y;
+}
+function cropPointerMove(e){
+  if(!cropState || !cropState.dragging) return;
+  const p = e.touches ? e.touches[0] : e;
+  cropState.x = cropState.startImgX + (p.clientX - cropState.startX);
+  cropState.y = cropState.startImgY + (p.clientY - cropState.startY);
+  clampCropPosition();
+  renderCropTransform();
+  if(e.cancelable) e.preventDefault();
+}
+function cropPointerUp(){ if(cropState) cropState.dragging = false; }
+
+document.getElementById('cropStage').addEventListener('mousedown', cropPointerDown);
+document.addEventListener('mousemove', cropPointerMove);
+document.addEventListener('mouseup', cropPointerUp);
+document.getElementById('cropStage').addEventListener('touchstart', cropPointerDown, {passive:true});
+document.addEventListener('touchmove', cropPointerMove, {passive:false});
+document.addEventListener('touchend', cropPointerUp);
+
+document.getElementById('zoomRange').addEventListener('input', function(){
+  if(!cropState) return;
+  const zoomFactor = this.value/100;
+  const center = cropState.stageSize/2;
+  const oldScale = cropState.scale;
+  const newScale = cropState.minScale * zoomFactor;
+  const relX = (center - cropState.x)/oldScale;
+  const relY = (center - cropState.y)/oldScale;
+  cropState.scale = newScale;
+  cropState.x = center - relX*newScale;
+  cropState.y = center - relY*newScale;
+  clampCropPosition();
+  renderCropTransform();
+});
+
+function renderCroppedDataUrl(outputSize, quality){
+  const canvas = document.createElement('canvas');
+  canvas.width = outputSize;
+  canvas.height = outputSize;
+  const ratio = outputSize / cropState.stageSize;
+  canvas.getContext('2d').drawImage(
+    cropState.img,
+    0, 0, cropState.img.naturalWidth, cropState.img.naturalHeight,
+    cropState.x*ratio, cropState.y*ratio,
+    cropState.img.naturalWidth*cropState.scale*ratio,
+    cropState.img.naturalHeight*cropState.scale*ratio
+  );
+  return canvas.toDataURL('image/jpeg', quality);
+}
+
+function applyPhotoForMode(dataUrl){
+  if(photoMode==='profile'){
+    const fabImg = document.getElementById('profileFabImg');
+    fabImg.src = dataUrl;
+    fabImg.style.display = 'block';
+    document.getElementById('profileFabIcon').style.display = 'none';
+  } else {
+    applyBackground(dataUrl);
+  }
+  const preview = document.getElementById('profilePreview');
+  preview.src = dataUrl;
+  preview.style.display = 'block';
+  document.getElementById('previewPlaceholder').style.display = 'none';
+}
+
+function saveProfilePhoto(){
+  const status = document.getElementById('profileStatus');
+  if(!cropState){ closeProfileModal(); return; }
+
+  status.textContent = 'Saving…';
+  status.className = 'profile-status';
+
+  const key = photoMode==='profile' ? PROFILE_KEY : BG_KEY;
+
+  // Try progressively smaller/lower-quality versions if storage quota is tight.
+  const attempts = [[520,.85], [360,.75], [260,.6], [180,.5]];
+  let dataUrl = null, saved = false, lastErr = null;
+  for(let i=0;i<attempts.length;i++){
+    dataUrl = renderCroppedDataUrl(attempts[i][0], attempts[i][1]);
+    try{
+      localStorage.setItem(key, dataUrl);
+      saved = true;
+      break;
+    }catch(err){
+      lastErr = err;
+    }
+  }
+
+  if(!saved) memStore[key] = dataUrl;
+  applyPhotoForMode(dataUrl);
+  resetCropUI();
+
+  const label = photoMode==='profile' ? 'profile picture' : 'background';
+  if(saved){
+    status.textContent = `Saved ✓ — this ${label} will stay next time you open the file.`;
+    status.className = 'profile-status ok';
+    document.getElementById('storageWarning').classList.remove('show');
+  } else {
+    const isQuota = lastErr && (lastErr.name === 'QuotaExceededError' || lastErr.code === 22);
+    status.textContent = isQuota
+      ? `Applied for now, but even a small version was too big to save permanently in this browser's storage.`
+      : "Applied for now, but this browser/app is blocking permanent saving, so it won't stay after you close the page. Try opening the file directly in Chrome or Safari.";
+    status.className = 'profile-status err';
+    document.getElementById('storageWarning').classList.add('show');
+  }
+}
+
+function removeProfilePhoto(){
+  const key = photoMode==='profile' ? PROFILE_KEY : BG_KEY;
+  try{ localStorage.removeItem(key); }catch(err){}
+  delete memStore[key];
+  const preview = document.getElementById('profilePreview');
+  preview.src = '';
+  preview.style.display = 'none';
+  document.getElementById('previewPlaceholder').style.display = 'flex';
+  if(photoMode==='profile'){
+    document.getElementById('profileFabImg').style.display = 'none';
+    document.getElementById('profileFabIcon').style.display = 'block';
+  } else {
+    applyBackground(null);
+  }
+  resetCropUI();
+  const status = document.getElementById('profileStatus');
+  status.textContent = (photoMode==='profile' ? 'Profile picture' : 'Background') + ' removed.';
+  status.className = 'profile-status';
+}
+
+document.addEventListener('DOMContentLoaded', loadProfile);
+
+</script>
+</body>
+</html>
